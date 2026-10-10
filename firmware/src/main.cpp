@@ -126,7 +126,13 @@ void setup() {
   ctrlCh = svc->createCharacteristic(CTRL_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY);
   ctrlCh->setCallbacks(new CtrlCB());
   svc->start();
-  NimBLEAdvertising *adv = NimBLEDevice::getAdvertising(); adv->addServiceUUID(SVC_UUID); adv->setScanResponse(true); adv->start();
+  // Name in the main advert (so every scanner shows it), service UUID in the scan response.
+  NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
+  NimBLEAdvertisementData ad; ad.setFlags(BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP); ad.setName("Wattcher");
+  NimBLEAdvertisementData sr; sr.addServiceUUID(SVC_UUID);
+  adv->setAdvertisementData(ad); adv->setScanResponseData(sr);
+  bool advOk = adv->start();
+  Serial.printf("Wattcher %s boot: advertising=%d claimed=%d shunt=%d mppt=%d addr=%s\n", FW_VERSION, advOk, claimState.claimed, shuntCfg.set, mpptCfg.set, NimBLEDevice::getAddress().toString().c_str());
   NimBLEScan *scan = NimBLEDevice::getScan();
   scan->setAdvertisedDeviceCallbacks(new ScanCB(), true);
   scan->setActiveScan(false); scan->setInterval(320); scan->setWindow(100);   // window < interval leaves radio time for GATT
@@ -138,6 +144,8 @@ void loop() {
   if (millis() - last < 1000) return;
   last = millis();
   uint32_t now = nowEpoch();
+  static uint32_t lastLog = 0;
+  if (millis() - lastLog > 10000) { lastLog = millis(); Serial.printf("t=%lus shunt=%d mppt=%d clients=%d\n", millis() / 1000, shuntOk, mpptOk, NimBLEDevice::getServer()->getConnectedCount()); }
   bool sFresh = shuntCfg.set && shuntCfg.lastMs && millis() - shuntCfg.lastMs < 120000;
   bool mFresh = mpptCfg.set && mpptCfg.lastMs && millis() - mpptCfg.lastMs < 120000;
   Live l; l.epoch = now; l.flags = (sFresh ? 1 : 0) | (mFresh ? 2 : 0);
