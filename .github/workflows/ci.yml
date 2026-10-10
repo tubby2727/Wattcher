@@ -1,0 +1,17 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  decoder-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: g++ -std=c++17 -Wall -Ifirmware/lib/victron firmware/test/test_victron.cpp firmware/lib/victron/victron.cpp -o t && ./t
+  firmware-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install platformio
+      - run: cp firmware/src/secrets.example.h firmware/src/secrets.h
+      - run: pio run -d firmware
