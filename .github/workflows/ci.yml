@@ -6,6 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: g++ -std=c++17 -Wall -Ifirmware/lib/victron firmware/test/test_victron.cpp firmware/lib/victron/victron.cpp -o t && ./t
+      - run: g++ -std=c++17 -Wall -Ifirmware/lib/core firmware/test/test_core.cpp -o t2 && ./t2
   firmware-build:
     runs-on: ubuntu-latest
     steps:
