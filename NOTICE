@@ -1,0 +1,6 @@
+Wattcher
+Copyright 2026 Wattcher contributors. Licensed under Apache-2.0 (see LICENSE).
+
+Victron device layouts for DC-DC (Orion XS), inverter and the state/error tables were
+cross-checked against keshavdv/victron-ble (Unlicense, public domain) and Victron's public
+"Extra manufacturer data" PDF. Orion XS layout credit: Fabian Schmidt's reverse engineering.

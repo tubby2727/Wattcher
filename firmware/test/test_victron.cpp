@@ -2,6 +2,7 @@
 #include "victron.h"
 #include <cstdio>
 #include <cmath>
+#include <string>
 static int fails = 0;
 #define CHECK(c) do { if (!(c)) { printf("FAIL line %d: %s\n", __LINE__, #c); fails++; } } while (0)
 int main() {
@@ -30,6 +31,19 @@ int main() {
   CHECK(victron::decodeSolarCharger(m, 12, s));
   CHECK(s.state == 3 && fabsf(s.voltage - 12.75f) < 0.001f && fabsf(s.current - 1.5f) < 0.01f);
   CHECK(fabsf(s.yield_kwh - 0.42f) < 0.001f && s.pv_w == 25 && s.load_a == victron::kNA);
+  // Experimental decoders: synthetic records (layout from victron-ble, not yet seen on real units).
+  uint8_t o[14] = {3, 0, 0xFB,0x04, 0x64,0x00, 0xE8,0x04, 0xC8,0x00, 0,0,0,0};
+  victron::OrionXS x;
+  CHECK(victron::decodeOrionXS(o, 14, x));
+  CHECK(x.state == 3 && fabsf(x.out_v - 12.75f) < 0.001f && fabsf(x.out_a - 10.0f) < 0.01f);
+  CHECK(fabsf(x.in_v - 12.56f) < 0.001f && fabsf(x.in_a - 20.0f) < 0.01f);
+  CHECK(std::string(victron::stateName(3)) == "Bulk");
+  CHECK(std::string(victron::chargerErrorName(2)) == "Battery voltage too high");
+  // Battery monitor with temperature aux (Smart Battery Sense style): 20.00 C = 29315 raw.
+  uint8_t t[15] = {0xFF,0xFF, 0xFB,0x04, 0,0, 0x83,0x72, 0x02,0,0, 0,0,0, 0};
+  victron::BatteryMonitor tb;
+  CHECK(victron::decodeBatteryMonitor(t, 15, tb));
+  CHECK(tb.aux_type == 2 && fabsf(tb.temp_c - 20.0f) < 0.01f && tb.ttg_min == -1);
   printf(fails ? "FAILED\n" : "all ok\n");
   return fails;
 }

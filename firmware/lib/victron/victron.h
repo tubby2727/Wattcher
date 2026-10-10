@@ -36,6 +36,9 @@ struct BatteryMonitor {
   float consumed_ah;    // Ah (negative = consumed)
   float soc;            // %, kNA if not available
   uint8_t aux_type;     // 0 starter V, 1 midpoint V, 2 temp, 3 none
+  float starter_v;      // kNA unless aux_type == 0
+  float midpoint_v;     // kNA unless aux_type == 1
+  float temp_c;         // kNA unless aux_type == 2 (also Smart Battery Sense)
 };
 
 struct SolarCharger {
@@ -48,7 +51,27 @@ struct SolarCharger {
   float load_a;         // kNA if no load output
 };
 
+// EXPERIMENTAL: layouts ported from victron-ble (Unlicense); unverified on real units.
+struct OrionXS {          // DC-DC charger, record type 0x0F
+  uint8_t state;          // OperationMode, 255 = NA
+  uint8_t error;          // ChargerError, 255 = NA
+  float out_v, out_a, in_v, in_a;  // kNA if not available
+  uint32_t off_reason;
+};
+struct Inverter {         // inverter record type 0x03
+  uint8_t state;
+  uint16_t alarm;
+  float battery_v;        // kNA if NA
+  int ac_va;              // -1 if NA
+  float ac_v, ac_a;       // kNA if NA
+};
+
+const char *stateName(uint8_t state);
+const char *chargerErrorName(uint8_t err);
+
 bool decodeBatteryMonitor(const uint8_t *p, size_t len, BatteryMonitor &out);
 bool decodeSolarCharger(const uint8_t *p, size_t len, SolarCharger &out);
+bool decodeOrionXS(const uint8_t *p, size_t len, OrionXS &out);
+bool decodeInverter(const uint8_t *p, size_t len, Inverter &out);
 
 }  // namespace victron
