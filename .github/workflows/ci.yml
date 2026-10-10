@@ -9,6 +9,7 @@ jobs:
       - run: g++ -std=c++17 -Wall -Ifirmware/lib/core firmware/test/test_core.cpp -o t2 && ./t2
       - run: g++ -std=c++17 -Wall -Ifirmware/lib/core firmware/test/test_alarms_claim.cpp -o t3 && ./t3
       - run: g++ -std=c++17 -Wall -Ifirmware/lib/tempsensor firmware/test/test_atc.cpp -o t4 && ./t4
+      - run: g++ -std=c++17 -Wall -Ifirmware/lib/core firmware/test/test_frame.cpp -o t5 && ./t5
   firmware-build:
     runs-on: ubuntu-latest
     steps:
@@ -16,5 +17,4 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install platformio
-      - run: cp firmware/src/secrets.example.h firmware/src/secrets.h
       - run: pio run -d firmware
