@@ -1,5 +1,7 @@
 name: ci
 on: [push, pull_request]
+permissions:
+  contents: write
 jobs:
   decoder-tests:
     runs-on: ubuntu-latest
@@ -17,7 +19,19 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install platformio
-      - run: pio run -d firmware
+      - name: Build firmware
+        run: |
+          set -o pipefail
+          pio run -d firmware 2>&1 | tee build.log
+      - name: Publish build log to ci-logs branch (so it can be read without opening Actions)
+        if: always() && github.event_name == 'push'
+        run: |
+          mkdir -p /tmp/l && cp build.log /tmp/l/build.log 2>/dev/null || true
+          echo "sha=$GITHUB_SHA status=${{ job.status }}" > /tmp/l/status.txt
+          git config user.name ci && git config user.email ci@users.noreply.github.com
+          git checkout --orphan ci-logs-tmp && git rm -rf . -q
+          cp /tmp/l/* . && git add -A && git commit -qm "build log for $GITHUB_SHA"
+          git push -f origin HEAD:ci-logs
       - run: |
           pip install esptool
           B=firmware/.pio/build/c3_supermini

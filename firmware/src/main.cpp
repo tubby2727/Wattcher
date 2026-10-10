@@ -129,7 +129,7 @@ void setup() {
   // Name in the main advert (so every scanner shows it), service UUID in the scan response.
   NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
   NimBLEAdvertisementData ad; ad.setFlags(BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP); ad.setName("Wattcher");
-  NimBLEAdvertisementData sr; sr.addServiceUUID(SVC_UUID);
+  NimBLEAdvertisementData sr; sr.setCompleteServices(NimBLEUUID(SVC_UUID));
   adv->setAdvertisementData(ad); adv->setScanResponseData(sr);
   bool advOk = adv->start();
   Serial.printf("Wattcher %s boot: advertising=%d claimed=%d shunt=%d mppt=%d addr=%s\n", FW_VERSION, advOk, claimState.claimed, shuntCfg.set, mpptCfg.set, NimBLEDevice::getAddress().toString().c_str());
