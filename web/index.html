@@ -35,11 +35,23 @@ a{color:var(--accent)}
   <div class="tile" data-k="pv"><small>Solar</small><span class="val" id="pv">--</span><span class="unit">W</span></div>
   <div class="tile" data-k="full"><small>Last full charge</small><span class="val" id="full" style="font-size:20px">--</span></div>
 </div>
+<details class="tile" style="margin-top:12px" id="setup"><summary>Setup (first time or change devices)</summary>
+<p class="note">Connect first. A new unit accepts a PIN for 5 minutes after power-up.</p>
+<input id="pin" placeholder="6-digit PIN" inputmode="numeric" maxlength="6" style="width:100%;margin:4px 0;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+<button id="claim">Claim new unit</button> <button id="auth" class="ghost">Unlock with PIN</button>
+<input id="smac" placeholder="Shunt MAC (aa:bb:cc:dd:ee:ff)" style="width:100%;margin:8px 0 4px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+<input id="skey" placeholder="Shunt encryption key (32 hex)" style="width:100%;margin:4px 0;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+<input id="mmac" placeholder="MPPT MAC" style="width:100%;margin:4px 0;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+<input id="mkey" placeholder="MPPT encryption key (32 hex)" style="width:100%;margin:4px 0;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+<input id="cap" placeholder="Battery capacity Ah (e.g. 100)" inputmode="decimal" style="width:100%;margin:4px 0;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)">
+<button id="save">Save devices</button>
+<div id="reply" class="note"></div></details>
 <p class="note">Backup dashboard over Web Bluetooth (Chrome on Android or desktop). It cannot alert in the background; use the Android app for notifications. Get the app from the <a href="https://github.com/tubby2727/wattcher/releases/latest">latest release</a>.</p>
 </main>
 <script>
 const SERVICE = '7a7c0001-0000-4a77-8a77-63686572776d';   // placeholder, matches docs/protocol.md
 const LIVE = '7a7c0003-0000-4a77-8a77-63686572776d';
+const CTRL = '7a7c0005-0000-4a77-8a77-63686572776d';
 const ALARMS = ['Battery low','Battery critical','Voltage low','Voltage high','Time to empty short','No charge','Victron fault','Sensor lost'];
 const $ = id => document.getElementById(id);
 
@@ -69,7 +81,15 @@ function show(s) {
   const b = $('banner'); b.className = 'banner' + (names.length ? ' bad' : off.length ? ' warn' : '');
   b.textContent = names.length ? names.join(', ') : off.length ? 'ALL OK - ' + off.join(', ') + ' OFF' : 'ALL OK';
 }
-let timer = null;
+let timer = null, ctrl = null;
+const send = async t => { if (!ctrl) { $('reply').textContent = 'Connect first'; return; } await ctrl.writeValue(new TextEncoder().encode(t)); };
+$('claim').onclick = async () => { await send('TIME ' + Math.floor(Date.now()/1000)); await send('CLAIM ' + $('pin').value); };
+$('auth').onclick = async () => { await send('TIME ' + Math.floor(Date.now()/1000)); await send('AUTH ' + $('pin').value); };
+$('save').onclick = async () => {
+  if ($('smac').value && $('skey').value) await send('SETDEV shunt ' + $('smac').value.trim() + ' ' + $('skey').value.trim());
+  if ($('mmac').value && $('mkey').value) await send('SETDEV mppt ' + $('mmac').value.trim() + ' ' + $('mkey').value.trim());
+  if ($('cap').value) await send('CAP ' + $('cap').value);
+};
 $('demo').onclick = () => {
   clearInterval(timer); let t = 0;
   timer = setInterval(() => { t++; show({soc: 87 - (t % 30) / 10, volts: 12.9, amps: -6.4, pv: 0, tte: 540, full: Math.floor(Date.now()/1000) - 86400, alarms: 0, off: 0}); }, 1000);
@@ -79,7 +99,9 @@ $('connect').onclick = async () => {
   try {
     const dev = await navigator.bluetooth.requestDevice({ filters: [{ namePrefix: 'Wattcher' }], optionalServices: [SERVICE] });
     $('banner').textContent = 'Connecting...';
-    const srv = await dev.gatt.connect(); const ch = await (await srv.getPrimaryService(SERVICE)).getCharacteristic(LIVE);
+    const srv = await dev.gatt.connect(); const svc = await srv.getPrimaryService(SERVICE); const ch = await svc.getCharacteristic(LIVE);
+    ctrl = await svc.getCharacteristic(CTRL); await ctrl.startNotifications();
+    ctrl.addEventListener('characteristicvaluechanged', e => { $('reply').textContent = 'Unit: ' + new TextDecoder().decode(e.target.value); });
     const on = () => { const s = parseLive(ch.value); if (s) show(s); };
     ch.addEventListener('characteristicvaluechanged', on); await ch.startNotifications(); ch.value && on();
     dev.addEventListener('gattserverdisconnected', () => { $('banner').className = 'banner warn'; $('banner').textContent = 'Disconnected'; });
