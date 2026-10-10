@@ -12,6 +12,7 @@ jobs:
       - run: g++ -std=c++17 -Wall -Ifirmware/lib/core firmware/test/test_alarms_claim.cpp -o t3 && ./t3
       - run: g++ -std=c++17 -Wall -Ifirmware/lib/tempsensor firmware/test/test_atc.cpp -o t4 && ./t4
       - run: g++ -std=c++17 -Wall -Ifirmware/lib/core firmware/test/test_frame.cpp -o t5 && ./t5
+      - run: g++ -std=c++17 -Wall -Ifirmware/lib/core firmware/test/test_history.cpp -o t6 && ./t6
   firmware-build:
     runs-on: ubuntu-latest
     steps:

@@ -17,6 +17,10 @@ int main() {
   CHECK(f[21] == 5 && f[25] == 2 && f[29] == 3);             // alarms 21, off 25, flags 29
   wattcher::Live n; wattcher::packLive(n, f);
   CHECK((int16_t)(f[5] | f[6] << 8) == 0x7FFF && (uint16_t)(f[9] | f[10] << 8) == 0xFFFF);
+  wattcher::SensorSlot ss[2] = {{0, 450, 61, 87, 1}, {2, -1830, 50, 90, 0}};
+  uint8_t sb[32]; size_t n2 = wattcher::packSensors(ss, 2, sb);
+  CHECK(n2 == 13 && sb[0] == 2 && sb[1] == 0 && (int16_t)(sb[2] | sb[3] << 8) == 450 && sb[6] == 1);
+  CHECK(sb[7] == 2 && (int16_t)(sb[8] | sb[9] << 8) == -1830 && sb[12] == 0);
   printf(fails ? "FAILED\n" : "all ok\n");
   return fails;
 }
