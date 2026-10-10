@@ -1,0 +1,14 @@
+{
+  "name": "wattcher-app",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": { "sync": "cp ../web/index.html www/index.html && npx cap sync android" },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/local-notifications": "^6.0.0",
+    "@capacitor-community/bluetooth-le": "^6.0.0"
+  },
+  "devDependencies": { "@capacitor/cli": "^6.1.0" }
+}

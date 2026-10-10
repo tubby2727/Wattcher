@@ -1,0 +1,6 @@
+{
+  "appId": "io.github.tubby2727.wattcher",
+  "appName": "Wattcher",
+  "webDir": "www",
+  "android": { "allowMixedContent": false }
+}
