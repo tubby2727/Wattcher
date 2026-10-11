@@ -27,7 +27,13 @@ export class Link extends Emitter {
   async connectOnly(deviceId) {
     await init();
     this.deviceId = deviceId; this.setState('connecting'); this.buf = '';
-    await BleClient.connect(deviceId, () => this.dropped(), { timeout: 15000 });
+    let lastErr;
+    for (let k = 0; k < 4; k++) {   // Android often fails the first attempt with GATT status 133
+      try { await BleClient.connect(deviceId, () => this.dropped(), { timeout: 15000 }); lastErr = null; break; }
+      catch (e) { lastErr = e; try { await BleClient.disconnect(deviceId); } catch (x) { /* ignore */ } await sleep(900 + k * 600); }
+    }
+    if (lastErr) throw lastErr;
+    await sleep(400);
     try { const dv = await BleClient.read(deviceId, SVC, CH.info); return JSON.parse(dec.decode(new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength))); } catch (e) { return { claimed: null, readError: String(e.message || e) }; }
   }
   async authenticate(mode, pin) {   // mode: 'auth' | 'claim'
