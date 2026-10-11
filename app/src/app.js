@@ -25,7 +25,7 @@ export async function activate(van) {
   link.on('live', (l) => {
     app.live = l; const prev = app.prevMask; app.prevMask = l.alarms;
     if (Date.now() - lastPersist > 20000) { lastPersist = Date.now(); store.updateVan(van.id, { last: { live: l, at: Date.now() } }); }
-    alerts.raise(prev, l.alarms, van, l, store.settings.notifications);
+    alerts.raise(prev, l.alarms, van, l, store.settings.notifications); if (prev !== l.alarms) app.emit('alog');
     app.emit('live');
   });
   link.on('sensors', (s) => { app.sensors = s; app.emit('sensors'); });
@@ -87,3 +87,5 @@ export function banner() {
   if (!l.shuntFresh) return { tone: 'warn', title: 'No shunt readings yet', sub: 'Check the shunt is in range, or add it in Settings', icon: 'warn' };
   return { tone: 'ok', title: 'All OK', sub: '', icon: 'ok' };
 }
+
+alerts.onAction((id) => { if (id != null) setAlarmOff(id, 3600); });

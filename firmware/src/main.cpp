@@ -362,10 +362,12 @@ void loop() {
     metrics.update(now, soc, shunt.voltage, shunt.current);
     l.volts_cv = (int16_t)lroundf(shunt.voltage * 100); l.amps_da = (int16_t)lroundf(shunt.current * 10);
     if (soc >= 0) l.soc_dpct = (uint16_t)lroundf(soc * 10);
-    int t = shunt.current < 0 ? metrics.timeToEmptyMin(soc) : metrics.timeToFullMin(soc);
+    // Discharging: use the shunt's own time-to-go (smoothed by Victron); fall back to ours if it reports none.
+    int ttgShunt = shunt.ttg_min > 0 ? shunt.ttg_min : -1;
+    int t = shunt.current < 0 ? (ttgShunt >= 0 ? ttgShunt : metrics.timeToEmptyMin(soc)) : metrics.timeToFullMin(soc);
     if (t >= 0) l.tte_min = t;
     l.last_full_epoch = metrics.last_full_epoch;
-    r.soc = soc; r.volts = shunt.voltage; r.tte_min = metrics.timeToEmptyMin(soc); r.charging = shunt.current > 0.2f;
+    r.soc = soc; r.volts = shunt.voltage; r.tte_min = ttgShunt >= 0 ? ttgShunt : metrics.timeToEmptyMin(soc); r.charging = shunt.current > 0.2f;
     r.victron_fault = shunt.alarm != 0;
   }
   if (mFresh && mpptOk) l.pv_w = mppt.pv_w;

@@ -20,6 +20,14 @@ function textSheet({ title, label, value, type = 'text', hint, onSave }) {
   });
 }
 
+function locationSheet() {
+  const cur = store.settings.location || { lat: -38.1, lon: 145.8 };
+  const la = h('input', { cls: 'input', type: 'number', step: 'any', value: cur.lat }), lo = h('input', { cls: 'input', type: 'number', step: 'any', value: cur.lon });
+  sheet((close) => h('div', { cls: 'stack' }, h('h2', {}, 'Location'), h('div', { cls: 'help' }, 'Only used on this phone to work out sunrise and sunset. South is negative latitude.'),
+    h('div', { cls: 'field' }, h('label', {}, 'Latitude'), la), h('div', { cls: 'field' }, h('label', {}, 'Longitude'), lo),
+    h('button', { cls: 'btn ghost', onClick: () => navigator.geolocation?.getCurrentPosition((p) => { la.value = p.coords.latitude.toFixed(3); lo.value = p.coords.longitude.toFixed(3); }, () => toast('Could not get your location')) }, 'Use my current location'),
+    h('button', { cls: 'btn', onClick: () => { const a = Number(la.value), b = Number(lo.value); if (!(Math.abs(a) <= 90 && Math.abs(b) <= 180)) return toast('Check the numbers'); store.setSetting('location', { lat: a, lon: b }); app.emit('van'); app.emit('history'); close(); } }, 'Save')));
+}
 function needLink() { if (!app.link || app.conn !== 'ready') { toast('Connect to the unit first'); return false; } return true; }
 
 export function vansSheet() {
@@ -39,7 +47,7 @@ export function Settings() {
   let key = '';
   function update() {
     const s = app.status, v = app.van;
-    const k = JSON.stringify([s, v?.name, v?.cap, app.conn, store.settings.theme, store.vans.length]);
+    const k = JSON.stringify([s, v?.name, v?.cap, app.conn, store.settings.theme, store.vans.length, store.settings.location]);
     if (k === key && el.childNodes.length) return; key = k;
     el.replaceChildren();
     if (!v) { el.append(h('div', { cls: 'card empty' }, 'No unit yet.', h('div', { style: 'margin-top:12px' }, h('button', { cls: 'btn', onClick: () => startWizard() }, 'Set up a unit')))); return; }
@@ -67,7 +75,7 @@ export function Settings() {
       h('div', { style: 'display:grid;gap:8px;margin-top:10px' }, h('button', { cls: 'btn ghost', onClick: () => startWizard({ add: true }) }, 'Add another unit'), h('button', { cls: 'btn ghost', onClick: vansSheet }, 'Manage vans'))));
 
     const themeSeg = h('div', { cls: 'seg' }, ['auto', 'dark', 'light'].map((t) => h('button', { cls: store.settings.theme === t ? 'on' : '', onClick: () => { store.setSetting('theme', t); applyTheme(t); key = ''; update(); } }, t[0].toUpperCase() + t.slice(1))));
-    el.append(h('div', { cls: 'card' }, h('h3', {}, 'App'), h('div', { cls: 'field' }, h('label', {}, 'Theme'), themeSeg),
+    el.append(h('div', { cls: 'card' }, h('h3', {}, 'App'), h('div', { cls: 'field' }, h('label', {}, 'Theme'), themeSeg), row('Location', `${(store.settings.location?.lat ?? -38.1).toFixed(2)}, ${(store.settings.location?.lon ?? 145.8).toFixed(2)}. Used to shade night on the history graph.`, h('span', { cls: 'chip' }, 'Edit'), locationSheet),
       h('div', { style: 'display:grid;gap:8px;margin-top:6px' }, h('button', { cls: 'btn ghost', onClick: () => checkForUpdate(true) }, 'Check for updates'), h('button', { cls: 'btn ghost', onClick: () => startWizard({ rerun: true }) }, 'Run setup again')),
       h('div', { cls: 'help', style: 'margin-top:10px' }, `Wattcher app ${VER}. Open source, Apache-2.0.`)));
 

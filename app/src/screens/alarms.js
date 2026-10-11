@@ -30,7 +30,7 @@ export function Alarms() {
   const el = h('div', { cls: 'stack' });
   let lastKey = '';
   function update() {
-    const l = app.live; const key = `${l?.alarms}|${l?.off}|${app.conn}|${Object.keys(offList())}`;
+    const l = app.live; const key = `${l?.alarms}|${l?.off}|${app.conn}|${Object.keys(offList())}|${store.alarmLog().length}`;
     if (key === lastKey && el.childNodes.length) return; lastKey = key;
     el.replaceChildren();
     const offAny = ALARMS.some((a) => l && (l.off & (1 << a.id)));
@@ -56,6 +56,10 @@ export function Alarms() {
     nCard.append(h('div', { cls: 'row' }, h('div', { cls: 'grow' }, h('b', {}, 'Alarm notifications'), h('small', {}, store.settings.notifications ? 'On. Wattcher keeps a quiet notification so Android lets it stay connected.' : 'Off. Alarms only show inside the app.')), sw));
     nCard.append(h('div', { cls: 'help', style: 'margin-top:10px' }, alerts.isNative() ? 'On Samsung phones, also set Battery to Unrestricted for Wattcher (Settings, Apps, Wattcher, Battery), otherwise Android may stop it overnight. Notifications follow your Do Not Disturb settings.' : 'In a browser, notifications only work while this page is open. Install the Android app for background alerts.'));
     el.append(nCard);
+    const log = store.alarmLog().filter((x) => x.vanId === app.van?.id).slice(-8).reverse();
+    el.append(h('div', { cls: 'card' }, h('h3', {}, 'Recent alarms'), log.length
+      ? h('div', { cls: 'list' }, log.map((x) => h('div', { cls: 'row' }, h('div', { cls: 'grow' }, h('b', {}, ALARMS[x.alarm].name), h('small', {}, new Date(x.t * 1000).toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }))), h('span', { cls: `chip ${x.kind === 'fired' ? 'bad' : 'ok'}` }, x.kind === 'fired' ? 'Fired' : 'Cleared'))))
+      : h('div', { cls: 'help' }, 'Nothing has fired on this phone yet.')));
   }
-  return { el, update, events: ['live', 'state', 'van'] };
+  return { el, update, events: ['live', 'state', 'van', 'alog'] };
 }

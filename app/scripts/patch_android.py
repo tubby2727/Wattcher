@@ -49,3 +49,17 @@ if os.environ.get('WATT_KEYSTORE'):
     t = re.sub(r'(buildTypes \{\s*release \{)', r'\1\n            signingConfig signingConfigs.release', t, 1)
 g.write_text(t)
 print('patched android project', ver, code, 'signed' if os.environ.get('WATT_KEYSTORE') else 'unsigned/debug')
+
+# ---- alarm sound (res/raw/alarm_beep.wav): three urgent beeps, generated here so no binary sits in the repo
+import math, struct, wave
+raw = res / 'raw'; raw.mkdir(exist_ok=True)
+with wave.open(str(raw / 'alarm_beep.wav'), 'wb') as w:
+    w.setnchannels(1); w.setsampwidth(2); w.setframerate(22050)
+    frames = bytearray(); sr = 22050
+    def tone(f, d, vol=0.8):
+        for i in range(int(sr * d)):
+            env = min(1, i / 200, (sr * d - i) / 200)
+            frames.extend(struct.pack('<h', int(32767 * vol * env * math.sin(2 * math.pi * f * i / sr))))
+    for _ in range(3):
+        tone(1760, 0.18); tone(0, 0.08); tone(1320, 0.18); tone(0, 0.12)
+    w.writeframes(bytes(frames))

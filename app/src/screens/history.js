@@ -2,7 +2,8 @@
 import { h } from '../dom.js';
 import { app } from '../app.js';
 import { store } from '../store.js';
-import { lineChart } from '../charts.js';
+import { lineChart, trendChart, barChart } from '../charts.js';
+import { nightSpans } from '../sun.js';
 
 const RANGES = [{ k: '6h', sec: 6 * 3600, ring: 'fine' }, { k: '24h', sec: 24 * 3600, ring: 'fine' }, { k: '7 days', sec: 7 * 86400, ring: 'coarse' }, { k: '30 days', sec: 30 * 86400, ring: 'coarse' }];
 let range = 1;
@@ -45,9 +46,27 @@ export function History() {
       stat('Solar', hasSolar ? (solarWh >= 1000 ? (solarWh / 1000).toFixed(2) : Math.round(solarWh)) : '--', hasSolar ? (solarWh >= 1000 ? 'kWh' : 'Wh') : ''),
       stat('Lowest', isFinite(minSoc) ? Math.round(minSoc) : '--', '%'),
       stat('Avg use', avgUse == null ? '--' : Math.round(Math.max(0, avgUse)), 'W')));
-    el.append(chartCard({ title: 'Battery level', points: pts(3), color: 'var(--ok)', unit: '%', fmt: (v) => v.toFixed(0), min: 0, max: 100, sec: r.sec, latest: last[3] }));
+    // hero: battery % with solar shaded behind and night bands
+    const loc = store.settings.location || { lat: -38.1, lon: 145.8 };
+    const big = h('b', { cls: 'num' }, ''), meta = h('span', {}, '');
+    const showLatest = () => { big.textContent = last[3] == null ? '--' : `${Math.round(last[3])}%`; meta.textContent = 'Latest'; };
+    showLatest();
+    const chart = trendChart({ rows, rangeSec: r.sec, nights: nightSpans(rows[0][0], last[0], loc.lat, loc.lon), onScrub: (q) => {
+      if (!q) return showLatest();
+      big.textContent = `${Math.round(q[3])}%`;
+      const bits = [new Date(q[0] * 1000).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })];
+      if (q[1] != null) bits.push(`${q[1].toFixed(2)} V`); if (q[2] != null) bits.push(`${q[2] > 0 ? '+' : ''}${q[2].toFixed(1)} A`); if (q[4] != null) bits.push(`${Math.round(q[4])} W solar`);
+      meta.textContent = bits.join('  -  ');
+    } });
+    el.append(h('div', { cls: 'card' }, h('h3', {}, 'Battery and solar'), h('div', { cls: 'legend' }, big, meta), chart,
+      h('div', { cls: 'key' }, h('span', {}, h('i', { style: 'background:var(--ok)' }), 'Battery'), hasSolar ? h('span', {}, h('i', { style: 'background:#F2B36B' }), 'Solar') : null, h('span', {}, h('i', { style: 'background:var(--dim);opacity:.4' }), 'Night'))));
+    if (r.sec >= 7 * 86400 && hasSolar) {
+      const perDay = new Map();
+      rows.forEach((s0, i) => { if (i === 0) return; const d0 = new Date(s0[0] * 1000); d0.setHours(0, 0, 0, 0); const k = d0.getTime(); perDay.set(k, (perDay.get(k) || 0) + (s0[4] || 0) * Math.min(s0[0] - rows[i - 1][0], 1800) / 3.6e6); });
+      const items = [...perDay.entries()].map(([k, v]) => ({ label: new Date(k).getDate().toString(), value: v, today: new Date(k).toDateString() === new Date().toDateString() }));
+      el.append(h('div', { cls: 'card' }, h('h3', {}, 'Solar per day (kWh)'), barChart({ items })));
+    }
     el.append(chartCard({ title: 'Battery power (+ charging / - using)', points: watts, color: 'var(--accent)', unit: 'W', fmt: (v) => Math.round(v), zero: true, sec: r.sec, latest: watts[watts.length - 1].y }));
-    if (hasSolar) el.append(chartCard({ title: 'Solar', points: pts(4), color: 'var(--warn)', unit: 'W', fmt: (v) => Math.round(v), min: 0, sec: r.sec, latest: last[4] }));
     el.append(chartCard({ title: 'Voltage', points: pts(1), color: '#C084FC', unit: 'V', fmt: (v) => v.toFixed(2), sec: r.sec, area: false, latest: last[1] }));
     el.append(h('div', { cls: 'help', style: 'text-align:center' }, 'Touch a chart to read exact values. Up to 24 hours is kept per minute, up to 30 days per 15 minutes.'));
   }

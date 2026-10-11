@@ -27,6 +27,8 @@ export const store = {
     try { localStorage.removeItem(`wattcher.hist.${id}`); } catch (e) { /* ignore */ }
     save();
   },
+  alarmLog() { try { return JSON.parse(localStorage.getItem('wattcher.alog')) || []; } catch (e) { return []; } },
+  logAlarm(vanId, alarm, kind) { const l = store.alarmLog(); l.push({ t: Math.floor(Date.now() / 1000), vanId, alarm, kind }); try { localStorage.setItem('wattcher.alog', JSON.stringify(l.slice(-60))); } catch (e) { /* ignore */ } },
   setSetting(k, v) { state.settings[k] = v; save(); },
   // History cache per van: { fine: [[t,v,a,soc,pv]...], coarse: [...] }
   loadHist(id) { try { return JSON.parse(localStorage.getItem(`wattcher.hist.${id}`)) || { fine: [], coarse: [] }; } catch (e) { return { fine: [], coarse: [] }; } },

@@ -4,9 +4,11 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { ForegroundService } from '@capawesome-team/capacitor-android-foreground-service';
 import { ALARMS, fmtDur } from './proto.js';
+import { store } from './store.js';
 
 export const isNative = () => Capacitor.isNativePlatform();
-let ready = false;
+let ready = false, listening = false, actionHandler = null;
+export const onAction = (fn) => { actionHandler = fn; };
 
 export async function ensurePermission() {
   try {
@@ -14,7 +16,9 @@ export async function ensurePermission() {
       let p = await LocalNotifications.checkPermissions();
       if (p.display !== 'granted') p = await LocalNotifications.requestPermissions();
       if (!ready && p.display === 'granted') {
-        await LocalNotifications.createChannel({ id: 'alarms', name: 'Battery alarms', description: 'Low battery and other alarms', importance: 5, visibility: 1, vibration: true });
+        await LocalNotifications.createChannel({ id: 'alarms2', name: 'Battery alarms', description: 'Low battery and other alarms. Loud, vibrates and repeats until fixed.', importance: 5, visibility: 1, vibration: true, lights: true, lightColor: '#F87171', sound: 'alarm_beep.wav' });
+        try { await LocalNotifications.registerActionTypes({ types: [{ id: 'ALARM', actions: [{ id: 'mute1h', title: 'Mute 1 hour' }, { id: 'open', title: 'Open', foreground: true }] }] }); } catch (e) { /* ignore */ }
+        if (!listening) { listening = true; LocalNotifications.addListener('localNotificationActionPerformed', (ev) => { if (ev.actionId === 'mute1h' && actionHandler) actionHandler(ev.notification?.extra?.alarm); }); }
         try { await ForegroundService.createNotificationChannel({ id: 'watch', name: 'Watching your unit', description: 'Keeps the connection alive so alarms can reach you', importance: 2 }); } catch (e) { /* older plugin */ }
         ready = true;
       }
@@ -44,19 +48,23 @@ const detail = (id, live) => {
   }
 };
 
-// Called with the previous and new alarm masks. Notifies only for newly raised alarms.
+// Called on every live update. Notifies when an alarm is raised and keeps re-notifying (loud, with vibration)
+// until it clears: critical battery every minute, others every 5 minutes.
+const lastSent = {};
 export async function raise(prevMask, mask, van, live, enabled = true) {
-  if (!enabled) return;
   for (const a of ALARMS) {
-    const bit = 1 << a.id;
-    if ((mask & bit) && !(prevMask & bit)) {
-      const title = `${van.name}: ${a.name}`, body = detail(a.id, live);
-      try {
-        if (isNative()) await LocalNotifications.schedule({ notifications: [{ id: 100 + a.id, title, body, channelId: 'alarms', smallIcon: 'ic_stat_wattcher', ongoing: false }] });
-        else if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body });
-      } catch (e) { console.warn(e); }
-    }
-    if (!(mask & bit) && (prevMask & bit) && isNative()) { try { await LocalNotifications.cancel({ notifications: [{ id: 100 + a.id }] }); } catch (e) { /* ignore */ } }
+    const bit = 1 << a.id, active = !!(mask & bit), was = !!(prevMask & bit);
+    if (active && !was) store.logAlarm(van.id, a.id, 'fired');
+    if (!active && was) { store.logAlarm(van.id, a.id, 'cleared'); delete lastSent[a.id]; if (isNative()) { try { await LocalNotifications.cancel({ notifications: [{ id: 100 + a.id }] }); } catch (e) { /* ignore */ } } }
+    if (!active || !enabled) continue;
+    const every = (a.id === 1 ? 60 : 300) * 1000;
+    if (lastSent[a.id] && Date.now() - lastSent[a.id] < every) continue;
+    lastSent[a.id] = Date.now();
+    const title = `${van.name}: ${a.name}`, body = detail(a.id, live);
+    try {
+      if (isNative()) await LocalNotifications.schedule({ notifications: [{ id: 100 + a.id, title, body, largeBody: body, channelId: 'alarms2', smallIcon: 'ic_stat_wattcher', ongoing: a.id === 1, autoCancel: a.id !== 1, actionTypeId: a.mutable ? 'ALARM' : undefined, extra: { alarm: a.id }, sound: 'alarm_beep.wav' }] });
+      else if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body });
+    } catch (e) { console.warn(e); }
   }
 }
 
