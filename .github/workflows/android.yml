@@ -26,12 +26,12 @@ jobs:
             python3 scripts/patch_android.py
             npx cap sync android
             (cd android && ./gradlew assembleDebug --no-daemon)
-          } 2>&1 | tee ../build-app.log
+          } 2>&1 | tee "$GITHUB_WORKSPACE/build-app.log"
       - name: Publish log to ci-logs-app branch
         if: always() && github.event_name == 'push'
         working-directory: .
         run: |
-          mkdir -p /tmp/l && cp build-app.log /tmp/l/ 2>/dev/null || true
+          mkdir -p /tmp/l && cp "$GITHUB_WORKSPACE/build-app.log" /tmp/l/ 2>&1 || ls -la "$GITHUB_WORKSPACE" > /tmp/l/ls.txt
           echo "sha=$GITHUB_SHA status=${{ job.status }}" > /tmp/l/status.txt
           git config user.name ci && git config user.email ci@users.noreply.github.com
           git checkout --orphan ci-logs-app-tmp && git rm -rf . -q
