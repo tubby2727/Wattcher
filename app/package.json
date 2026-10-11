@@ -1,14 +1,26 @@
 {
   "name": "wattcher-app",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "license": "Apache-2.0",
-  "scripts": { "sync": "cp ../web/index.html www/index.html && npx cap sync android" },
-  "dependencies": {
-    "@capacitor/android": "^6.1.0",
-    "@capacitor/core": "^6.1.0",
-    "@capacitor/local-notifications": "^6.0.0",
-    "@capacitor-community/bluetooth-le": "^6.0.0"
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "sync": "vite build && npx cap sync android"
   },
-  "devDependencies": { "@capacitor/cli": "^6.1.0" }
+  "dependencies": {
+    "@capacitor-community/bluetooth-le": "^8.3.0",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capawesome-team/capacitor-android-foreground-service": "^8.1.0",
+    "spark-md5": "^3.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
+    "vite": "^7.0.0"
+  }
 }

@@ -2,6 +2,8 @@
 // GATT server for the phone. See docs/protocol.md. Apache-2.0.
 #include <Arduino.h>
 #include <Preferences.h>
+#include <Update.h>
+#include <esp_ota_ops.h>
 #include <LittleFS.h>
 #include <NimBLEDevice.h>
 #include <mbedtls/sha256.h>
@@ -18,8 +20,9 @@
 #define LIVE_UUID "7a7c0003-0000-4a77-8a77-63686572776d"
 #define CTRL_UUID "7a7c0005-0000-4a77-8a77-63686572776d"
 #define HIST_UUID "7a7c0006-0000-4a77-8a77-63686572776d"
+#define OTA_UUID  "7a7c0007-0000-4a77-8a77-63686572776d"
 #define SENS_UUID "7a7c0008-0000-4a77-8a77-63686572776d"
-#define FW_VERSION "0.2.0"
+#define FW_VERSION "0.3.0"
 #define BOOT_PIN 9   // BOOT button on the C3 SuperMini; hold 10 s while running = factory reset
 
 using namespace wattcher;
@@ -47,6 +50,7 @@ static volatile bool saveRequested = false, resetRequested = false, rebootReques
 
 struct HistStream { volatile bool active = false; bool coarse = false; size_t idx = 0; uint8_t seq = 0; };
 static HistStream hs;
+static bool otaActive = false; static uint32_t otaGot = 0, otaSize = 0; static volatile bool otaReboot = false;
 
 static uint32_t nowEpoch() { return clockSet ? (uint32_t)(clockOffset + (int32_t)(millis() / 1000)) : millis() / 1000; }
 
@@ -84,6 +88,18 @@ static void reply(const String &msg) {
 }
 
 // ---------------------------------------------------------------- persistence
+static void loadDevices() {
+  shuntCfg.set = mpptCfg.set = false; shuntCfg.haveNonce = mpptCfg.haveNonce = false; shuntOk = mpptOk = false;
+  for (auto &t : temps) { t.set = false; t.have = false; }
+  String sm = prefs.getString("shunt_mac", ""), mm = prefs.getString("mppt_mac", "");
+  if (sm.length() && prefs.getBytes("shunt_key", shuntCfg.key, 16) == 16) { shuntCfg.mac = sm; shuntCfg.addr = NimBLEAddress(sm.c_str()); shuntCfg.set = true; }
+  if (mm.length() && prefs.getBytes("mppt_key", mpptCfg.key, 16) == 16) { mpptCfg.mac = mm; mpptCfg.addr = NimBLEAddress(mm.c_str()); mpptCfg.set = true; }
+  for (int i = 0; i < (int)kMaxSensors; i++) {
+    String m = prefs.getString(("t" + String(i) + "_mac").c_str(), "");
+    if (m.length()) { temps[i].set = true; temps[i].mac = m; temps[i].addr = NimBLEAddress(m.c_str()); temps[i].name = prefs.getString(("t" + String(i) + "_name").c_str(), "Sensor"); }
+  }
+}
+
 static void loadConfig() {
   prefs.begin("wattcher", false);
   claimState.claimed = prefs.getBool("claimed", false);
@@ -93,13 +109,7 @@ static void loadConfig() {
   alarms.th.soc_low = prefs.getFloat("t_soclow", 20); alarms.th.soc_crit = prefs.getFloat("t_soccrit", 10);
   alarms.th.volt_low = prefs.getFloat("t_vlow", 11.8f); alarms.th.volt_high = prefs.getFloat("t_vhigh", 14.8f);
   alarms.th.tte_short_min = prefs.getUInt("t_tte", 60); alarms.th.no_charge_s = prefs.getUInt("t_nochg", 24 * 3600);
-  String sm = prefs.getString("shunt_mac", ""), mm = prefs.getString("mppt_mac", "");
-  if (sm.length() && prefs.getBytes("shunt_key", shuntCfg.key, 16) == 16) { shuntCfg.mac = sm; shuntCfg.addr = NimBLEAddress(sm.c_str()); shuntCfg.set = true; }
-  if (mm.length() && prefs.getBytes("mppt_key", mpptCfg.key, 16) == 16) { mpptCfg.mac = mm; mpptCfg.addr = NimBLEAddress(mm.c_str()); mpptCfg.set = true; }
-  for (int i = 0; i < (int)kMaxSensors; i++) {
-    String m = prefs.getString(("t" + String(i) + "_mac").c_str(), "");
-    if (m.length()) { temps[i].set = true; temps[i].mac = m; temps[i].addr = NimBLEAddress(m.c_str()); temps[i].name = prefs.getString(("t" + String(i) + "_name").c_str(), "Sensor"); }
-  }
+  loadDevices();
 }
 
 static const uint32_t kHistMagic = 0x31494857;  // "WHI1"
@@ -189,13 +199,13 @@ class CtrlCB : public NimBLECharacteristicCallbacks {
       if ((kind != "shunt" && kind != "mppt") || !hexToBytes(key, k, 16) || mac.length() != 17) { reply("ERR bad args"); return; }
       mac.toLowerCase();
       prefs.putString((kind + "_mac").c_str(), mac); prefs.putBytes((kind + "_key").c_str(), k, 16);
-      reply("OK reboot"); rebootRequested = true; return;
+      loadDevices(); reply("OK"); return;
     }
     if (verb == "DELDEV") {  // DELDEV shunt|mppt
       String kind = popToken(arg);
       if (kind != "shunt" && kind != "mppt") { reply("ERR bad args"); return; }
       prefs.remove((kind + "_mac").c_str()); prefs.remove((kind + "_key").c_str());
-      reply("OK reboot"); rebootRequested = true; return;
+      loadDevices(); reply("OK"); return;
     }
     if (verb == "CAP") { float v = arg.toFloat(); if (v < 1 || v > 5000) { reply("ERR range"); return; } metrics.capacity_ah = v; prefs.putFloat("cap", v); reply("OK"); return; }
     if (verb == "NAME") { arg = arg.substring(0, 24); arg.replace("\"", ""); vanName = arg; prefs.putString("name", arg); reply("OK"); return; }
@@ -216,7 +226,7 @@ class CtrlCB : public NimBLECharacteristicCallbacks {
         prefs.putString(("t" + String(idx) + "_mac").c_str(), mac); prefs.putString(("t" + String(idx) + "_name").c_str(), arg);
       } else if (op == "del") { prefs.remove(("t" + String(idx) + "_mac").c_str()); prefs.remove(("t" + String(idx) + "_name").c_str()); }
       else { reply("ERR usage"); return; }
-      reply("OK reboot"); rebootRequested = true; return;
+      loadDevices(); reply("OK"); return;
     }
     if (verb == "MUTE") {    // MUTE <alarm id> <seconds, 0 = until turned on>
       int id = popToken(arg).toInt(); uint32_t secs = arg.toInt();
@@ -229,10 +239,45 @@ class CtrlCB : public NimBLECharacteristicCallbacks {
       hs.coarse = (which == "coarse"); hs.idx = history.findFirst(hs.coarse, since); hs.seq = 0; hs.active = true;
       reply("OK " + String((unsigned)(history.size(hs.coarse) - hs.idx))); return;
     }
+    if (verb == "OTA") {     // OTA BEGIN <size> <md5> | END | ABORT | ROLLBACK
+      String op = popToken(arg);
+      if (op == "BEGIN") {
+        uint32_t sz = popToken(arg).toInt(); String md5 = popToken(arg);
+        if (sz < 100000 || sz > 1700000 || md5.length() != 32) { reply("ERR bad args"); return; }
+        if (otaActive) Update.abort();
+        if (!Update.begin(sz)) { reply("ERR no space"); return; }
+        Update.setMD5(md5.c_str()); otaActive = true; otaGot = 0; otaSize = sz; reply("OK"); return;
+      }
+      if (op == "END") {
+        if (!otaActive || otaGot != otaSize) { reply("ERR incomplete " + String(otaGot)); return; }
+        otaActive = false;
+        if (!Update.end(true)) { reply("ERR verify"); return; }
+        reply("OK reboot"); otaReboot = true; return;
+      }
+      if (op == "ABORT") { if (otaActive) Update.abort(); otaActive = false; reply("OK"); return; }
+      if (op == "ROLLBACK") {
+        const esp_partition_t *p = esp_ota_get_next_update_partition(nullptr);
+        esp_app_desc_t d;
+        if (!p || esp_ota_get_partition_description(p, &d) != ESP_OK) { reply("ERR no previous firmware"); return; }
+        if (esp_ota_set_boot_partition(p) != ESP_OK) { reply("ERR failed"); return; }
+        reply("OK reboot"); otaReboot = true; return;
+      }
+      reply("ERR usage"); return;
+    }
     if (verb == "SAVE") { saveRequested = true; reply("OK"); return; }
     if (verb == "REBOOT") { reply("OK"); rebootRequested = true; return; }
     if (verb == "RESET") { reply("OK reboot"); resetRequested = true; return; }
     reply("ERR unknown");
+  }
+};
+
+class OtaCB : public NimBLECharacteristicCallbacks {
+  void onWrite(NimBLECharacteristic *c) override {
+    if (!authed || !otaActive) return;
+    std::string v = c->getValue();
+    if (otaGot + v.size() > otaSize) { Update.abort(); otaActive = false; return; }
+    if (Update.write((uint8_t *)v.data(), v.size()) != v.size()) { Update.abort(); otaActive = false; return; }
+    otaGot += v.size();
   }
 };
 
@@ -276,6 +321,7 @@ void setup() {
   ctrlCh = svc->createCharacteristic(CTRL_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY);
   ctrlCh->setCallbacks(new CtrlCB());
   histCh = svc->createCharacteristic(HIST_UUID, NIMBLE_PROPERTY::NOTIFY);
+  svc->createCharacteristic(OTA_UUID, NIMBLE_PROPERTY::WRITE)->setCallbacks(new OtaCB());
   sensCh = svc->createCharacteristic(SENS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
   svc->start();
   // Name in the main advert (so every scanner shows it), service UUID in the scan response.
@@ -296,6 +342,7 @@ void loop() {
   static uint32_t last = 0, lastSave = 0, btnDown = 0;
   streamStep();
   if (resetRequested) { prefs.clear(); LittleFS.format(); delay(300); ESP.restart(); }
+  if (otaReboot) { delay(500); ESP.restart(); }
   if (rebootRequested) { if (clockSet) saveHistory(); delay(300); ESP.restart(); }
   if (saveRequested) { saveRequested = false; if (clockSet) saveHistory(); }
   if (digitalRead(BOOT_PIN) == LOW) { if (!btnDown) btnDown = millis(); else if (millis() - btnDown > 10000) resetRequested = true; } else btnDown = 0;

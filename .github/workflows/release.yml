@@ -1,0 +1,55 @@
+name: release
+# Tag vX.Y.Z to publish: signed APK + firmware images on a GitHub Release.
+on:
+  push: { tags: ['v*'] }
+permissions: { contents: write }
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      WATT_STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      WATT_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      WATT_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install platformio esptool
+      - name: Firmware
+        run: |
+          VER=${GITHUB_REF_NAME#v}
+          sed -i "s/#define FW_VERSION \".*\"/#define FW_VERSION \"$VER\"/" firmware/src/main.cpp
+          pio run -d firmware
+          B=firmware/.pio/build/c3_supermini
+          BOOT=$(find ~/.platformio -name boot_app0.bin | head -1)
+          cp $B/firmware.bin wattcher-c3-app.bin
+          esptool.py --chip esp32c3 merge_bin -o wattcher-c3-factory.bin --flash_mode dio --flash_size 4MB 0x0 $B/bootloader.bin 0x8000 $B/partitions.bin 0xe000 $BOOT 0x10000 $B/firmware.bin
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+      - name: App
+        working-directory: app
+        run: |
+          VER=${GITHUB_REF_NAME#v}
+          npm version $VER --no-git-tag-version --allow-same-version
+          npm install && npx vite build && npx cap add android
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $RUNNER_TEMP/wattcher.jks
+            export WATT_KEYSTORE=$RUNNER_TEMP/wattcher.jks
+            python3 scripts/patch_android.py && npx cap sync android
+            (cd android && ./gradlew assembleRelease --no-daemon)
+            cp android/app/build/outputs/apk/release/app-release.apk ../wattcher.apk
+          else
+            python3 scripts/patch_android.py && npx cap sync android
+            (cd android && ./gradlew assembleDebug --no-daemon)
+            cp android/app/build/outputs/apk/debug/app-debug.apk ../wattcher.apk
+          fi
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            wattcher.apk
+            wattcher-c3-app.bin
+            wattcher-c3-factory.bin

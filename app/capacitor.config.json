@@ -2,5 +2,16 @@
   "appId": "io.github.tubby2727.wattcher",
   "appName": "Wattcher",
   "webDir": "www",
-  "android": { "allowMixedContent": false }
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_wattcher",
+      "iconColor": "#4AA3FF"
+    },
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
 }
