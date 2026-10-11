@@ -1,0 +1,382 @@
+npm warn deprecated uuid@7.0.3: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+
+added 120 packages, and audited 121 packages in 3s
+
+17 packages are looking for funding
+  run `npm fund` for details
+
+3 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+[36mvite v7.3.7 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 44 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mwww/[22m[32mindex.html                 [39m[1m[2m  0.46 kB[22m[1m[22m[2m │ gzip:  0.30 kB[22m
+[2mwww/[22m[2massets/[22m[35mindex-TjRzgOnP.css  [39m[1m[2m 12.49 kB[22m[1m[22m[2m │ gzip:  3.65 kB[22m
+[2mwww/[22m[2massets/[22m[36mweb-DdwhLozA.js     [39m[1m[2m  4.54 kB[22m[1m[22m[2m │ gzip:  1.35 kB[22m
+[2mwww/[22m[2massets/[22m[36mweb-U1lBh86v.js     [39m[1m[2m  8.33 kB[22m[1m[22m[2m │ gzip:  2.39 kB[22m
+[2mwww/[22m[2massets/[22m[36mindex-DOc7OgXp.js   [39m[1m[2m123.18 kB[22m[1m[22m[2m │ gzip: 43.92 kB[22m
+[32m✓ built in 673ms[39m
+✔ Adding native android project in android in 41.42ms
+✔ add in 42.11ms
+✔ Copying web assets from www to android/app/src/main/assets/public in 3.39ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 385.54μs
+✔ copy android in 12.16ms
+✔ Updating Android plugins in 1.64ms
+[info] Found 4 Capacitor plugins for android:
+       @capacitor-community/bluetooth-le@8.3.0
+       @capacitor/app@8.1.2
+       @capacitor/local-notifications@8.3.1
+       @capawesome-team/capacitor-android-foreground-service@8.1.0
+✔ update android in 24.86ms
+✔ Syncing Gradle in 169.60μs
+[success] android platform added!
+Follow the Developer Workflow guide to get building:
+https://capacitorjs.com/docs/basics/workflow
+patched android project 0.6.1 28 unsigned/debug
+✔ Copying web assets from www to android/app/src/main/assets/public in 5.88ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 620.63μs
+✔ copy android in 16.76ms
+✔ Updating Android plugins in 1.58ms
+[info] Found 4 Capacitor plugins for android:
+       @capacitor-community/bluetooth-le@8.3.0
+       @capacitor/app@8.1.2
+       @capacitor/local-notifications@8.3.1
+       @capawesome-team/capacitor-android-foreground-service@8.1.0
+✔ update android in 32.03ms
+[info] Sync finished in 0.068s
+Downloading https://services.gradle.org/distributions/gradle-8.14.3-all.zip
+.....................10%.....................20%......................30%.....................40%......................50%.....................60%.....................70%......................80%.....................90%......................100%
+
+Welcome to Gradle 8.14.3!
+
+Here are the highlights of this release:
+ - Java 24 support
+ - GraalVM Native Image toolchain selection
+ - Enhancements to test reporting
+ - Build Authoring improvements
+
+For more details see https://docs.gradle.org/8.14.3/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+
+> Configure project :capacitor-cordova-android-plugins
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :capacitor-android:preBuild UP-TO-DATE
+> Task :capacitor-android:preDebugBuild UP-TO-DATE
+> Task :capacitor-app:preBuild UP-TO-DATE
+> Task :capacitor-app:preDebugBuild UP-TO-DATE
+> Task :capacitor-community-bluetooth-le:preBuild UP-TO-DATE
+> Task :capacitor-community-bluetooth-le:preDebugBuild UP-TO-DATE
+> Task :capacitor-app:writeDebugAarMetadata
+> Task :capacitor-community-bluetooth-le:writeDebugAarMetadata
+> Task :capacitor-cordova-android-plugins:preBuild UP-TO-DATE
+> Task :capacitor-android:writeDebugAarMetadata
+> Task :app:javaPreCompileDebug
+> Task :capacitor-cordova-android-plugins:preDebugBuild UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:writeDebugAarMetadata
+> Task :capacitor-local-notifications:preBuild UP-TO-DATE
+> Task :capacitor-local-notifications:preDebugBuild UP-TO-DATE
+> Task :capawesome-team-capacitor-android-foreground-service:preBuild UP-TO-DATE
+> Task :capawesome-team-capacitor-android-foreground-service:preDebugBuild UP-TO-DATE
+> Task :capacitor-local-notifications:writeDebugAarMetadata
+> Task :capawesome-team-capacitor-android-foreground-service:writeDebugAarMetadata
+> Task :capacitor-android:processDebugNavigationResources
+> Task :capacitor-app:processDebugNavigationResources
+> Task :app:checkDebugAarMetadata
+> Task :capacitor-community-bluetooth-le:processDebugNavigationResources
+> Task :capacitor-cordova-android-plugins:processDebugNavigationResources
+> Task :capacitor-local-notifications:processDebugNavigationResources
+> Task :capawesome-team-capacitor-android-foreground-service:processDebugNavigationResources
+> Task :app:processDebugNavigationResources
+> Task :app:generateDebugResValues
+> Task :capacitor-android:generateDebugResValues
+> Task :app:compileDebugNavigationResources
+> Task :capacitor-android:generateDebugResources
+> Task :capacitor-android:packageDebugResources
+> Task :capacitor-app:generateDebugResValues
+> Task :capacitor-app:generateDebugResources
+> Task :capacitor-app:packageDebugResources
+> Task :capacitor-community-bluetooth-le:generateDebugResValues
+> Task :capacitor-community-bluetooth-le:generateDebugResources
+> Task :capacitor-community-bluetooth-le:packageDebugResources
+> Task :capacitor-cordova-android-plugins:generateDebugResValues
+> Task :capacitor-cordova-android-plugins:generateDebugResources
+> Task :capacitor-cordova-android-plugins:packageDebugResources
+> Task :capacitor-local-notifications:generateDebugResValues
+> Task :capacitor-local-notifications:generateDebugResources
+> Task :capacitor-local-notifications:packageDebugResources
+> Task :capawesome-team-capacitor-android-foreground-service:generateDebugResValues
+> Task :capawesome-team-capacitor-android-foreground-service:generateDebugResources
+> Task :capawesome-team-capacitor-android-foreground-service:packageDebugResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:mergeDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :capacitor-android:extractDeepLinksDebug
+> Task :capacitor-app:extractDeepLinksDebug
+> Task :capacitor-community-bluetooth-le:extractDeepLinksDebug
+> Task :capacitor-app:processDebugManifest
+> Task :capacitor-community-bluetooth-le:processDebugManifest
+> Task :capacitor-android:processDebugManifest
+> Task :capacitor-cordova-android-plugins:extractDeepLinksDebug
+> Task :app:parseDebugLocalResources
+> Task :capacitor-cordova-android-plugins:processDebugManifest
+> Task :capacitor-local-notifications:extractDeepLinksDebug
+> Task :capawesome-team-capacitor-android-foreground-service:extractDeepLinksDebug
+> Task :capacitor-local-notifications:processDebugManifest
+> Task :capawesome-team-capacitor-android-foreground-service:processDebugManifest
+> Task :capacitor-android:compileDebugLibraryResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :capacitor-app:compileDebugLibraryResources
+> Task :app:processDebugManifestForPackage
+> Task :capacitor-community-bluetooth-le:compileDebugLibraryResources
+> Task :capacitor-android:parseDebugLocalResources
+> Task :capacitor-app:parseDebugLocalResources
+> Task :capacitor-community-bluetooth-le:parseDebugLocalResources
+> Task :capacitor-cordova-android-plugins:compileDebugLibraryResources
+> Task :capacitor-app:generateDebugRFile
+> Task :capacitor-community-bluetooth-le:generateDebugRFile
+> Task :capacitor-android:generateDebugRFile
+> Task :capacitor-cordova-android-plugins:parseDebugLocalResources
+> Task :capacitor-local-notifications:compileDebugLibraryResources
+> Task :capacitor-cordova-android-plugins:generateDebugRFile
+> Task :capacitor-local-notifications:parseDebugLocalResources
+> Task :capawesome-team-capacitor-android-foreground-service:compileDebugLibraryResources
+> Task :capawesome-team-capacitor-android-foreground-service:parseDebugLocalResources
+> Task :capacitor-android:javaPreCompileDebug
+> Task :capacitor-local-notifications:generateDebugRFile
+> Task :capacitor-app:javaPreCompileDebug
+> Task :capawesome-team-capacitor-android-foreground-service:generateDebugRFile
+
+> Task :capacitor-android:compileDebugJavaWithJavac
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :capacitor-community-bluetooth-le:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :capacitor-community-bluetooth-le:javaPreCompileDebug
+> Task :capacitor-local-notifications:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :capacitor-cordova-android-plugins:javaPreCompileDebug
+> Task :capacitor-local-notifications:javaPreCompileDebug
+> Task :capacitor-cordova-android-plugins:compileDebugJavaWithJavac NO-SOURCE
+> Task :capacitor-cordova-android-plugins:bundleLibCompileToJarDebug
+> Task :capawesome-team-capacitor-android-foreground-service:javaPreCompileDebug
+> Task :capacitor-android:bundleLibCompileToJarDebug
+> Task :app:mergeDebugShaders
+> Task :capacitor-app:compileDebugJavaWithJavac
+> Task :capacitor-app:bundleLibCompileToJarDebug
+> Task :app:processDebugResources
+
+> Task :capawesome-team-capacitor-android-foreground-service:compileDebugJavaWithJavac
+Note: /home/runner/work/Wattcher/Wattcher/app/node_modules/@capawesome-team/capacitor-android-foreground-service/android/src/main/java/io/capawesome/capacitorjs/plugins/foregroundservice/AndroidForegroundService.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :capawesome-team-capacitor-android-foreground-service:bundleLibCompileToJarDebug
+> Task :capacitor-android:mergeDebugShaders
+> Task :capacitor-android:compileDebugShaders NO-SOURCE
+> Task :capacitor-android:generateDebugAssets UP-TO-DATE
+> Task :capacitor-android:mergeDebugAssets
+> Task :capacitor-app:mergeDebugShaders
+> Task :capacitor-app:compileDebugShaders NO-SOURCE
+> Task :capacitor-app:generateDebugAssets UP-TO-DATE
+> Task :capacitor-app:mergeDebugAssets
+> Task :capacitor-community-bluetooth-le:mergeDebugShaders
+> Task :capacitor-community-bluetooth-le:compileDebugShaders NO-SOURCE
+> Task :capacitor-community-bluetooth-le:generateDebugAssets UP-TO-DATE
+> Task :capacitor-community-bluetooth-le:mergeDebugAssets
+> Task :capacitor-cordova-android-plugins:mergeDebugShaders
+> Task :capacitor-cordova-android-plugins:compileDebugShaders NO-SOURCE
+> Task :capacitor-cordova-android-plugins:generateDebugAssets UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:mergeDebugAssets
+> Task :capacitor-local-notifications:mergeDebugShaders
+> Task :capacitor-local-notifications:compileDebugShaders NO-SOURCE
+> Task :capacitor-local-notifications:generateDebugAssets UP-TO-DATE
+> Task :capacitor-local-notifications:mergeDebugAssets
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugShaders
+> Task :capawesome-team-capacitor-android-foreground-service:compileDebugShaders NO-SOURCE
+> Task :capawesome-team-capacitor-android-foreground-service:generateDebugAssets UP-TO-DATE
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugAssets
+> Task :app:mergeDebugAssets
+> Task :capacitor-app:bundleLibRuntimeToJarDebug
+> Task :app:compressDebugAssets
+> Task :capawesome-team-capacitor-android-foreground-service:bundleLibRuntimeToJarDebug
+> Task :capacitor-android:bundleLibRuntimeToJarDebug
+> Task :capacitor-cordova-android-plugins:bundleLibRuntimeToJarDebug
+> Task :app:desugarDebugFileDependencies
+> Task :app:processDebugJavaRes NO-SOURCE
+> Task :capacitor-android:processDebugJavaRes NO-SOURCE
+> Task :capacitor-app:processDebugJavaRes NO-SOURCE
+> Task :capacitor-cordova-android-plugins:processDebugJavaRes NO-SOURCE
+> Task :capawesome-team-capacitor-android-foreground-service:processDebugJavaRes NO-SOURCE
+> Task :app:checkDebugDuplicateClasses
+> Task :capacitor-community-bluetooth-le:compileDebugKotlin
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/BluetoothLe.kt:187:40 'fun enable(): Boolean' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/BluetoothLe.kt:198:40 'fun disable(): Boolean' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:192:22 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:200:19 'fun onCharacteristicRead(p0: BluetoothGatt!, p1: BluetoothGattCharacteristic!, p2: Int): Unit' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:203:43 'var value: ByteArray!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:247:22 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:255:19 'fun onCharacteristicChanged(p0: BluetoothGatt!, p1: BluetoothGattCharacteristic!): Unit' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:257:39 'var value: ByteArray!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:276:22 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:284:19 'fun onDescriptorRead(p0: BluetoothGatt!, p1: BluetoothGattDescriptor!, p2: Int): Unit' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:288:39 'var value: ByteArray!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:438:40 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:596:28 'var value: ByteArray!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:598:41 'fun writeCharacteristic(p0: BluetoothGattCharacteristic!): Boolean' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:672:24 'var value: ByteArray!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:673:45 'fun writeDescriptor(p0: BluetoothGattDescriptor!): Boolean' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:742:24 'var value: ByteArray!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/Wattcher/Wattcher/app/node_modules/@capacitor-community/bluetooth-le/android/src/main/java/com/capacitorjs/community/plugins/bluetoothle/Device.kt:743:41 'fun writeDescriptor(p0: BluetoothGattDescriptor!): Boolean' is deprecated. Deprecated in Java.
+
+> Task :capacitor-local-notifications:compileDebugKotlin
+> Task :app:mergeExtDexDebug
+> Task :capacitor-community-bluetooth-le:compileDebugJavaWithJavac NO-SOURCE
+> Task :capacitor-local-notifications:compileDebugJavaWithJavac NO-SOURCE
+> Task :capacitor-community-bluetooth-le:bundleLibCompileToJarDebug
+> Task :capacitor-local-notifications:bundleLibCompileToJarDebug
+> Task :capacitor-community-bluetooth-le:bundleLibRuntimeToJarDebug
+> Task :app:compileDebugJavaWithJavac
+> Task :capacitor-local-notifications:bundleLibRuntimeToJarDebug
+> Task :app:dexBuilderDebug
+> Task :capacitor-community-bluetooth-le:processDebugJavaRes
+> Task :capacitor-local-notifications:processDebugJavaRes
+> Task :capacitor-community-bluetooth-le:bundleLibRuntimeToDirDebug
+> Task :app:mergeDebugGlobalSynthetics
+> Task :capacitor-app:bundleLibRuntimeToDirDebug
+> Task :capacitor-local-notifications:bundleLibRuntimeToDirDebug
+> Task :capawesome-team-capacitor-android-foreground-service:bundleLibRuntimeToDirDebug
+> Task :capacitor-android:bundleLibRuntimeToDirDebug
+> Task :capacitor-cordova-android-plugins:bundleLibRuntimeToDirDebug
+> Task :app:mergeDebugJavaResource
+> Task :app:mergeProjectDexDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :capacitor-android:mergeDebugJniLibFolders
+> Task :capacitor-android:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-android:copyDebugJniLibsProjectOnly
+> Task :capacitor-app:mergeDebugJniLibFolders
+> Task :capacitor-app:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-app:copyDebugJniLibsProjectOnly
+> Task :capacitor-community-bluetooth-le:mergeDebugJniLibFolders
+> Task :capacitor-community-bluetooth-le:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-community-bluetooth-le:copyDebugJniLibsProjectOnly
+> Task :capacitor-cordova-android-plugins:mergeDebugJniLibFolders
+> Task :capacitor-cordova-android-plugins:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectOnly
+> Task :capacitor-local-notifications:mergeDebugJniLibFolders
+> Task :capacitor-local-notifications:mergeDebugNativeLibs NO-SOURCE
+> Task :capacitor-local-notifications:copyDebugJniLibsProjectOnly
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugJniLibFolders
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugNativeLibs NO-SOURCE
+> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectOnly
+> Task :app:validateSigningDebug
+> Task :app:mergeDebugNativeLibs NO-SOURCE
+> Task :app:stripDebugDebugSymbols NO-SOURCE
+> Task :app:writeDebugAppMetadata
+> Task :app:mergeLibDexDebug
+> Task :app:writeDebugSigningConfigVersions
+> Task :capacitor-android:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-android:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-android:checkDebugAarMetadata
+> Task :capacitor-android:extractDebugAnnotations
+> Task :capacitor-android:extractDeepLinksForAarDebug
+> Task :capacitor-android:mergeDebugGeneratedProguardFiles
+> Task :capacitor-android:mergeDebugConsumerProguardFiles
+> Task :capacitor-android:prepareDebugArtProfile
+> Task :capacitor-android:prepareLintJarForPublish
+> Task :capacitor-android:mergeDebugJavaResource
+> Task :capacitor-app:checkDebugAarMetadata
+> Task :capacitor-android:syncDebugLibJars
+> Task :capacitor-android:bundleDebugAar
+> Task :capacitor-android:assembleDebug
+> Task :capacitor-app:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-app:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-app:extractDebugAnnotations
+> Task :capacitor-app:extractDeepLinksForAarDebug
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+> Task :capacitor-app:mergeDebugGeneratedProguardFiles
+> Task :capacitor-app:mergeDebugConsumerProguardFiles
+> Task :capacitor-app:prepareDebugArtProfile
+> Task :capacitor-app:prepareLintJarForPublish
+> Task :capacitor-app:mergeDebugJavaResource
+> Task :capacitor-community-bluetooth-le:checkDebugAarMetadata
+> Task :capacitor-app:syncDebugLibJars
+> Task :capacitor-app:bundleDebugAar
+> Task :capacitor-app:assembleDebug
+> Task :capacitor-community-bluetooth-le:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-community-bluetooth-le:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-community-bluetooth-le:extractDebugAnnotations
+> Task :capacitor-community-bluetooth-le:extractDeepLinksForAarDebug
+> Task :capacitor-community-bluetooth-le:mergeDebugGeneratedProguardFiles
+> Task :capacitor-community-bluetooth-le:mergeDebugConsumerProguardFiles
+> Task :capacitor-community-bluetooth-le:prepareDebugArtProfile
+> Task :capacitor-community-bluetooth-le:prepareLintJarForPublish
+> Task :capacitor-community-bluetooth-le:mergeDebugJavaResource
+> Task :capacitor-cordova-android-plugins:checkDebugAarMetadata
+> Task :capacitor-community-bluetooth-le:syncDebugLibJars
+> Task :capacitor-community-bluetooth-le:bundleDebugAar
+> Task :capacitor-community-bluetooth-le:assembleDebug
+> Task :capacitor-cordova-android-plugins:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-cordova-android-plugins:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-cordova-android-plugins:extractDebugAnnotations
+> Task :capacitor-cordova-android-plugins:extractDeepLinksForAarDebug
+> Task :capacitor-cordova-android-plugins:mergeDebugGeneratedProguardFiles
+> Task :capacitor-cordova-android-plugins:mergeDebugConsumerProguardFiles
+> Task :capacitor-cordova-android-plugins:prepareDebugArtProfile
+> Task :capacitor-cordova-android-plugins:prepareLintJarForPublish
+> Task :capacitor-cordova-android-plugins:mergeDebugJavaResource
+> Task :capacitor-local-notifications:checkDebugAarMetadata
+> Task :capacitor-cordova-android-plugins:syncDebugLibJars
+> Task :capacitor-cordova-android-plugins:bundleDebugAar
+> Task :capacitor-cordova-android-plugins:assembleDebug
+> Task :capacitor-local-notifications:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-local-notifications:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-local-notifications:extractDebugAnnotations
+> Task :capacitor-local-notifications:extractDeepLinksForAarDebug
+> Task :capacitor-local-notifications:mergeDebugGeneratedProguardFiles
+> Task :capacitor-local-notifications:mergeDebugConsumerProguardFiles
+> Task :capacitor-local-notifications:prepareDebugArtProfile
+> Task :capacitor-local-notifications:prepareLintJarForPublish
+> Task :capacitor-local-notifications:mergeDebugJavaResource
+> Task :capawesome-team-capacitor-android-foreground-service:checkDebugAarMetadata
+> Task :capacitor-local-notifications:syncDebugLibJars
+> Task :capacitor-local-notifications:bundleDebugAar
+> Task :capacitor-local-notifications:assembleDebug
+> Task :capawesome-team-capacitor-android-foreground-service:stripDebugDebugSymbols NO-SOURCE
+> Task :capawesome-team-capacitor-android-foreground-service:copyDebugJniLibsProjectAndLocalJars
+> Task :capawesome-team-capacitor-android-foreground-service:extractDebugAnnotations
+> Task :capawesome-team-capacitor-android-foreground-service:extractDeepLinksForAarDebug
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugGeneratedProguardFiles
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugConsumerProguardFiles
+> Task :capawesome-team-capacitor-android-foreground-service:prepareDebugArtProfile
+> Task :capawesome-team-capacitor-android-foreground-service:prepareLintJarForPublish
+> Task :capawesome-team-capacitor-android-foreground-service:mergeDebugJavaResource
+> Task :capawesome-team-capacitor-android-foreground-service:syncDebugLibJars
+> Task :capawesome-team-capacitor-android-foreground-service:bundleDebugAar
+> Task :capawesome-team-capacitor-android-foreground-service:assembleDebug
+w: Detected multiple Kotlin daemon sessions at 
+
+[Incubating] Problems report is available at: file:///home/runner/work/Wattcher/Wattcher/app/android/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 2m 15s
+215 actionable tasks: 215 executed
