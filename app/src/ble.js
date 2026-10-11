@@ -114,7 +114,11 @@ export class Link extends Emitter {
     while (this.want) {
       if (this.state === 'ready') { await sleep(1500); continue; }
       try { await this.open(van.deviceId, 'auth', van.pin); delay = 2000; }
-      catch (e) { this.emit('error', e); this.setState('lost'); await sleep(delay); delay = Math.min(delay * 2, 30000); }
+      catch (e) {
+        this.emit('error', e); this.setState('lost');
+        if (/bad pin/i.test(e.message || '')) { this.want = false; this.badPin = true; this.emit('badpin'); return; }   // retrying would lock the unit
+        await sleep(/locked/i.test(e.message || '') ? 60000 : delay); delay = Math.min(delay * 2, 30000);
+      }
     }
   }
 }

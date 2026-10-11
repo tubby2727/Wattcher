@@ -31,6 +31,7 @@ export async function activate(van) {
   link.on('sensors', (s) => { app.sensors = s; app.emit('sensors'); });
   link.on('status', (s) => { app.status = s; app.emit('status'); });
   link.on('state', (s) => { app.conn = s; if (s === 'ready') app.lastError = null; app.emit('state'); if (s === 'ready') syncHistory(); });
+  link.on('badpin', () => app.emit('state'));
   link.on('error', (e) => { app.lastError = e; app.emit('state'); });
   app.emit('van');
   if (store.settings.notifications) { await alerts.ensurePermission(); alerts.startWatching(van); }
@@ -76,6 +77,7 @@ export function banner() {
   const l = app.live;
   if (!app.van) return { tone: 'warn', title: 'No unit set up', sub: 'Run setup to add your Wattcher' };
   if (app.conn !== 'ready' || !l) {
+    if (app.link?.badPin) return { tone: 'bad', title: 'PIN does not match', sub: 'Settings > Add another unit, then enter the unit\'s PIN (or choose a new one if it was reset)', icon: 'warn' };
     const why = app.lastError ? String(app.lastError.message || app.lastError).slice(0, 80) : '';
     return { tone: 'warn', title: app.conn === 'connecting' || app.conn === 'idle' ? 'Connecting to your unit...' : 'Unit not in range', sub: why || (l ? 'Showing the last readings' : 'Make sure it is powered and nearby') };
   }

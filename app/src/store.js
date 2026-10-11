@@ -15,6 +15,8 @@ export const store = {
   active() { return state.vans.find((v) => v.id === state.activeId) || state.vans[0] || null; },
   setActive(id) { state.activeId = id; save(); },
   addVan({ name, deviceId, deviceName, pin, cap = 100 }) {
+    const old = state.vans.find((x) => x.deviceId === deviceId);
+    if (old) { Object.assign(old, { name: name || old.name, deviceName: deviceName || old.deviceName, pin, cap }); state.activeId = old.id; save(); return old; }
     const van = { id: uid(), name: name || 'My van', deviceId, deviceName: deviceName || 'Wattcher', pin, cap, th: { ...DEFAULT_TH }, createdAt: Date.now(), last: null };
     state.vans.push(van); state.activeId = van.id; save(); return van;
   },
