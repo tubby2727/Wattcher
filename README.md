@@ -21,7 +21,7 @@ No Android? https://tubby2727.github.io/Wattcher/ runs the same app in Chrome us
 - `docs/` protocol and Victron notes.
 
 ## Releasing
-Tag `vX.Y.Z`. The release workflow builds the APK and firmware and attaches `wattcher.apk`, `wattcher-c3-app.bin` (for in-app updates) and `wattcher-c3-factory.bin`.
+Bump `app/package.json`, then push to the `release` branch (or push a `vX.Y.Z` tag). The release workflow builds the APK and firmware and attaches `wattcher.apk`, `wattcher-c3-app.bin` (for in-app updates) and `wattcher-c3-factory.bin`.
 Signed APKs need repo secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`; without them the APK is debug-signed and cannot update over a previous install.
 
 Never commit Victron encryption keys. Battery-monitor decoding is verified on real hardware; Orion, inverter and Battery Sense decoders and temperature sensors are experimental.
