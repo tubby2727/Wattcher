@@ -2,6 +2,7 @@
 import { store } from './store.js';
 import { makeLink } from './ble.js';
 import { ALARMS, DEFAULT_TH } from './proto.js';
+import { pushWidget } from './widget.js';
 import * as alerts from './alerts.js';
 import { toast } from './dom.js';
 
@@ -26,6 +27,7 @@ export async function activate(van) {
     app.live = l; const prev = app.prevMask; app.prevMask = l.alarms;
     if (Date.now() - lastPersist > 20000) { lastPersist = Date.now(); store.updateVan(van.id, { last: { live: l, at: Date.now() } }); }
     alerts.raise(prev, l.alarms, van, l, store.settings.notifications); if (prev !== l.alarms) app.emit('alog');
+    pushWidget(l, van, th());
     app.emit('live');
   });
   link.on('sensors', (s) => { app.sensors = s; app.emit('sensors'); });

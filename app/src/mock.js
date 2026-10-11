@@ -84,7 +84,7 @@ export class MockLink extends Emitter {
     let alarms = 0, off = 0;
     const act = [unit.soc <= unit.th.socLow && unit.soc > unit.th.socCrit, unit.soc <= unit.th.socCrit, v <= unit.th.voltLow, v >= unit.th.voltHigh, a < 0 && tte != null && tte <= unit.th.tteMin, false, false, false];
     act.forEach((on, i) => { const o = unit.off[i]; const isOff = o !== undefined && (o === Infinity || o > Date.now()); if (isOff) off |= 1 << i; else if (on) alarms |= 1 << i; });
-    this.emit('live', { epoch: now, volts: +v.toFixed(2), amps: +a.toFixed(1), soc: +unit.soc.toFixed(1), tte, lastFull: unit.lastFull, pv, alarms, off, shuntFresh: !!unit.shunt, mpptFresh: !!unit.mppt, hasTemps: unit.temps.length > 0, at: Date.now() });
+    this.emit('live', { epoch: now, volts: +v.toFixed(2), amps: +a.toFixed(1), soc: +unit.soc.toFixed(1), tte, lastFull: unit.lastFull, pv, alarms, off, shuntFresh: !!unit.shunt, mpptFresh: !!unit.mppt, hasTemps: unit.temps.length > 0, ah: +(-(unit.cap * (100 - unit.soc) / 100)).toFixed(1), at: Date.now() });
     this.emit('sensors', unit.temps.map((t) => ({ idx: t.i, temp: +(t.t + Math.sin(now / 400 + t.i) * 0.4).toFixed(2), hum: 55, batt: 87, fresh: true })));
   }
   async close() { this.want = false; clearInterval(this.timer); this.setState('idle'); }

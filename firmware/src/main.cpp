@@ -372,6 +372,7 @@ void loop() {
     int t = shunt.current < 0 ? (ttgShunt >= 0 ? ttgShunt : metrics.timeToEmptyMin(soc)) : metrics.timeToFullMin(soc);
     if (t >= 0) l.tte_min = t;
     l.last_full_epoch = metrics.last_full_epoch;
+    if (shunt.consumed_ah != victron::kNA) l.ah_da = (int16_t)lroundf(shunt.consumed_ah * 10);
     r.soc = soc; r.volts = shunt.voltage; r.tte_min = ttgShunt >= 0 ? ttgShunt : metrics.timeToEmptyMin(soc); r.charging = shunt.current > 0.2f;
     r.victron_fault = shunt.alarm != 0;
   }

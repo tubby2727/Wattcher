@@ -43,6 +43,7 @@ export function parseLive(dv) {
     shuntFresh: !!(dv.getUint8(29) & 1),
     mpptFresh: !!(dv.getUint8(29) & 2),
     hasTemps: !!(dv.getUint8(29) & 4),
+    ah: dv.byteLength >= 32 && dv.getInt16(30, true) !== NA16 ? dv.getInt16(30, true) / 10 : null,
     at: Date.now(),
   };
 }

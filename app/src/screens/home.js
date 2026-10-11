@@ -57,11 +57,11 @@ export function Home() {
   const tteB = { textContent: '' }, tteS = { textContent: '' };
 
   const tile = (label, unit) => { const v = h('div', { cls: 'v num' }, '--'); const n = h('div', { cls: 'note' }, ''); const el = h('div', { cls: 'tile' }, h('small', {}, label), v, n); return { el, v, n, unit }; };
-  const tV = tile('Voltage'), tA = tile('Current'), tS = tile('Solar');
+  const tV = tile('Voltage'), tA = tile('Current'), tS = tile('Battery power'), tAh = tile('Used since full');
   const full = h('div', { cls: 'tile span2' }, h('small', {}, 'Last full charge'), h('div', { cls: 'v', style: 'font-size:24px' }, ''), h('div', { cls: 'note' }, ''));
   const temps = h('div', { cls: 'grid2' });
   const foot = h('div', { cls: 'help', style: 'text-align:center;padding:8px 0' }, '');
-  const grid = h('div', { cls: 'grid2' }, tV.el, tA.el, tS.el, full);
+  const grid = h('div', { cls: 'grid2' }, tV.el, tA.el, tS.el, tAh.el, full);
 
   const el = h('div', { cls: 'stack rise' }, bannerEl, silRow, hero, today, grid, temps, foot);
 
@@ -119,7 +119,8 @@ export function Home() {
     const vTone = l?.volts == null ? '' : l.volts <= t.voltLow || l.volts >= t.voltHigh ? 'bad' : 'ok';
     set(tV, l?.volts?.toFixed(2), 'V', '', stale ? 'stale' : vTone);
     set(tA, l?.amps == null ? null : (l.amps > 0 ? '+' : '') + l.amps.toFixed(1), 'A', l?.amps == null ? '' : l.amps > 0.2 ? 'Charging' : l.amps < -0.2 ? 'Discharging' : 'Resting', stale ? 'stale' : '');
-    tS.el.classList.add('hidden');
+    set(tS, battW == null ? null : `${battW > 0 ? '+' : ''}${battW}`, 'W', battW == null ? '' : battW > 3 ? 'Going into the battery' : battW < -3 ? 'Coming out of the battery' : 'Balanced', stale ? 'stale' : '');
+    set(tAh, l?.ah == null ? null : Math.abs(l.ah).toFixed(1), 'Ah', l?.ah == null ? '' : Math.abs(l.ah) < 0.2 ? 'Battery is full' : 'Taken out since last full', stale ? 'stale' : '');
 
     full.classList.toggle('hidden', !l);
     if (l) { full.children[1].textContent = l.lastFull ? fmtAgo(l.lastFull) : 'Not yet seen'; full.children[2].textContent = l.lastFull ? fmtDate(l.lastFull) : 'Counts when the battery sits at full for a couple of minutes'; }
