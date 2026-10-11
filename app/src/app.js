@@ -30,7 +30,7 @@ export async function activate(van) {
   });
   link.on('sensors', (s) => { app.sensors = s; app.emit('sensors'); });
   link.on('status', (s) => { app.status = s; app.emit('status'); });
-  link.on('state', (s) => { app.conn = s; app.emit('state'); if (s === 'ready') syncHistory(); });
+  link.on('state', (s) => { app.conn = s; if (s === 'ready') app.lastError = null; app.emit('state'); if (s === 'ready') syncHistory(); });
   link.on('error', (e) => { app.lastError = e; app.emit('state'); });
   app.emit('van');
   if (store.settings.notifications) { await alerts.ensurePermission(); alerts.startWatching(van); }
@@ -76,7 +76,8 @@ export function banner() {
   const l = app.live;
   if (!app.van) return { tone: 'warn', title: 'No unit set up', sub: 'Run setup to add your Wattcher' };
   if (app.conn !== 'ready' || !l) {
-    return { tone: 'warn', title: app.conn === 'connecting' || app.conn === 'idle' ? 'Connecting to your unit...' : 'Unit not in range', sub: l ? 'Showing the last readings' : 'Make sure it is powered and nearby' };
+    const why = app.lastError ? String(app.lastError.message || app.lastError).slice(0, 80) : '';
+    return { tone: 'warn', title: app.conn === 'connecting' || app.conn === 'idle' ? 'Connecting to your unit...' : 'Unit not in range', sub: why || (l ? 'Showing the last readings' : 'Make sure it is powered and nearby') };
   }
   const on = ALARMS.filter((a) => l.alarms & (1 << a.id)), off = ALARMS.filter((a) => l.off & (1 << a.id));
   if (on.length) return { tone: 'bad', title: on.map((a) => a.name).join(', '), sub: on.length > 1 ? `${on.length} alarms active` : 'Alarm active', icon: 'warn' };
