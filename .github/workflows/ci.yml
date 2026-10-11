@@ -25,6 +25,7 @@ jobs:
           set -o pipefail
           pio run -d firmware 2>&1 | tee build.log
       - name: Publish build log to ci-logs branch (so it can be read without opening Actions)
+        continue-on-error: true
         if: always() && github.event_name == 'push'
         run: |
           mkdir -p /tmp/l && cp build.log /tmp/l/build.log 2>/dev/null || true
