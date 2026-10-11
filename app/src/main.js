@@ -58,3 +58,4 @@ show(current);
 
 // Lightweight "demo" entry for the browser version: ?mock in the address bar.
 if (isMock()) toast('Demo mode: simulated unit');
+// pages rebuild
