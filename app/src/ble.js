@@ -81,11 +81,15 @@ export class Link extends Emitter {
   async ota(bytes, md5, onProgress) {
     const r = await this.cmd(`OTA BEGIN ${bytes.length} ${md5}`);
     if (!r.startsWith('OK')) throw new Error(r.replace('ERR ', ''));
-    const mtu = 180;
-    for (let o = 0; o < bytes.length; o += mtu) {
-      const part = bytes.slice(o, o + mtu);
-      await BleClient.write(this.deviceId, SVC, CH.ota, new DataView(part.buffer));
-      if ((o / mtu) % 20 === 0) onProgress?.(o / bytes.length);
+    try { await BleClient.requestConnectionPriority(this.deviceId, 1); } catch (e) { /* not supported (web) */ }   // 1 = high priority, much shorter connection interval
+    const mtu = 240; let nr = true;
+    for (let o = 0, n = 0; o < bytes.length; o += mtu, n++) {
+      const part = bytes.slice(o, o + mtu), dv = new DataView(part.buffer);
+      if (nr && n % 32 !== 31) {
+        try { await BleClient.writeWithoutResponse(this.deviceId, SVC, CH.ota, dv); }
+        catch (e) { nr = false; await BleClient.write(this.deviceId, SVC, CH.ota, dv); }   // older firmware: confirmed writes only
+      } else await BleClient.write(this.deviceId, SVC, CH.ota, dv);                      // periodic confirmed write keeps the unit in step
+      if (n % 20 === 0) onProgress?.(o / bytes.length);
     }
     onProgress?.(1);
     const e = await this.cmd('OTA END', 20000);

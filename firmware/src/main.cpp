@@ -321,7 +321,7 @@ void setup() {
   ctrlCh = svc->createCharacteristic(CTRL_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY);
   ctrlCh->setCallbacks(new CtrlCB());
   histCh = svc->createCharacteristic(HIST_UUID, NIMBLE_PROPERTY::NOTIFY);
-  svc->createCharacteristic(OTA_UUID, NIMBLE_PROPERTY::WRITE)->setCallbacks(new OtaCB());
+  svc->createCharacteristic(OTA_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR)->setCallbacks(new OtaCB());
   sensCh = svc->createCharacteristic(SENS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
   svc->start();
   // Name in the main advert (so every scanner shows it), service UUID in the scan response.
