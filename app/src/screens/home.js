@@ -3,6 +3,8 @@ import { h, icon } from '../dom.js';
 import { app, banner, th } from '../app.js';
 import { fmtDur, fmtAgo, fmtDate } from '../proto.js';
 import { store } from '../store.js';
+import * as alerts from '../alerts.js';
+import { ALARMS } from '../proto.js';
 
 const NS = (n, a = {}, ...k) => h('svg:' + n, a, ...k);
 const BODY = { x: 112, y: 16, w: 104, h: 72 };
@@ -23,6 +25,7 @@ function dots(x1, x2, y, color) {
 
 export function Home() {
   const bannerEl = h('div', { cls: 'banner' });
+  const silRow = h('div', { cls: 'silrow hidden' });
   const clipId = `bc${Math.random().toString(36).slice(2, 7)}`;
   const fill = NS('rect', { x: BODY.x + 4, y: BODY.y + 4, width: 0, height: BODY.h - 8, rx: 8, cls: 'bfill' });
   const shimmer = NS('rect', { x: BODY.x + 4, y: BODY.y + 4, width: 34, height: BODY.h - 8, cls: 'bshimmer' });
@@ -60,7 +63,7 @@ export function Home() {
   const foot = h('div', { cls: 'help', style: 'text-align:center;padding:8px 0' }, '');
   const grid = h('div', { cls: 'grid2' }, tV.el, tA.el, tS.el, full);
 
-  const el = h('div', { cls: 'stack rise' }, bannerEl, hero, today, grid, temps, foot);
+  const el = h('div', { cls: 'stack rise' }, bannerEl, silRow, hero, today, grid, temps, foot);
 
   const set = (t, val, unit, note, tone) => {
     t.v.innerHTML = ''; t.v.append(val == null ? '--' : String(val), val == null || !unit ? '' : h('u', {}, unit));
@@ -72,6 +75,15 @@ export function Home() {
     bannerEl.className = `banner ${b.tone === 'ok' ? '' : b.tone}`;
     bannerEl.replaceChildren(b.icon ? icon(b.icon) : icon('bolt'), h('div', {}, b.title, b.sub ? h('small', {}, b.sub) : null));
     const t = th();
+    // silence controls: only while an alarm is sounding on the unit
+    const act = l ? ALARMS.filter((a) => (l.alarms & (1 << a.id)) && a.mutable) : [];
+    silRow.classList.toggle('hidden', !act.length);
+    if (act.length) {
+      const loud = act.filter((a) => !alerts.isSilenced(a.id));
+      silRow.replaceChildren(...(loud.length
+        ? [h('button', { cls: 'btn ghost small', onClick: () => loud.forEach((a) => alerts.silence(a.id, 30 * 60000)) }, 'Silence 30 min'), h('button', { cls: 'btn ghost small', onClick: () => loud.forEach((a) => alerts.silence(a.id, Infinity)) }, 'Silence until fixed')]
+        : [h('button', { cls: 'btn ghost small', onClick: () => act.forEach((a) => alerts.unsilence(a.id)) }, 'Turn alarm sound back on')]));
+    }
     // battery picture
     const soc = l?.soc, charging = l?.amps != null && l.amps > 0.2, discharging = l?.amps != null && l.amps < -0.2;
     const tone = soc == null || stale ? 'stale' : soc <= t.socCrit ? 'bad' : soc <= t.socLow ? 'warn' : discharging ? 'amber' : 'ok';
@@ -93,15 +105,15 @@ export function Home() {
     let st = '', stTone = 'none';
     if (!l) st = 'Waiting for readings';
     else if (soc != null && soc >= 99.5 && l.amps > -0.3) { st = 'BATTERY FULL'; stTone = 'ok'; }
-    else if (charging && l.tte != null) { st = `CHARGING - full in ${fmtDur(l.tte)}`; stTone = 'ok'; }
-    else if (discharging && l.tte != null) { st = `ON BATTERY - ${fmtDur(l.tte)} left`; stTone = 'warn'; }
+    else if (charging && l.tte != null) { st = `CHARGING - full in ${fmtDur(l.tte)} (about ${eta(l.tte)})`; stTone = 'ok'; }
+    else if (discharging && l.tte != null) { st = `ON BATTERY - ${fmtDur(l.tte)} left (until about ${eta(l.tte)})`; stTone = 'warn'; }
     else if (charging) { st = 'CHARGING'; stTone = 'ok'; }
     else if (discharging) { st = 'ON BATTERY'; stTone = 'warn'; }
     else if (soc != null) { st = 'STEADY - nothing using or adding power'; }
     strip.className = `strip ${stale && l ? 'none' : stTone}`; strip.firstChild.textContent = st;
     // today
     const td = todaySummary();
-    if (td) { tween(todayV[0], td.solarKwh, (v) => `${v.toFixed(1)} kWh`); tween(todayV[1], td.usedKwh, (v) => `${v.toFixed(1)} kWh`); tween(todayV[2], td.lowSoc, (v) => `${Math.round(v)}%`); }
+    if (td) { tween(todayV[0], td.solarKwh * 1000, (v) => `${Math.round(v).toLocaleString()} Wh`); tween(todayV[1], td.usedKwh * 1000, (v) => `${Math.round(v).toLocaleString()} Wh`); tween(todayV[2], td.lowSoc, (v) => `${Math.round(v)}%`); }
     today.classList.toggle('hidden', !td || !hasSolar && !td.usedKwh);
     // tiles
     const vTone = l?.volts == null ? '' : l.volts <= t.voltLow || l.volts >= t.voltHigh ? 'bad' : 'ok';
@@ -124,6 +136,8 @@ export function Home() {
   }
   return { el, update, events: ['live', 'sensors', 'state', 'status', 'van'] };
 }
+
+const eta = (min) => new Date(Date.now() + min * 60000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
 // Energy and lowest battery level since midnight, from the cached history samples [t, v, a, soc, pv].
 function todaySummary() {

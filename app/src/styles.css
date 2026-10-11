@@ -155,3 +155,4 @@ input,select{font:inherit;color:var(--text)}
 .chart .bar-rise{transform-box:fill-box;transform-origin:bottom;animation:grow .6s cubic-bezier(.2,.8,.2,1) both}
 @keyframes grow{from{transform:scaleY(0)}}
 .chart.trend{height:190px}
+.silrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.silrow .btn:only-child{grid-column:1/3}

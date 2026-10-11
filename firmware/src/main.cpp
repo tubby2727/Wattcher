@@ -182,7 +182,12 @@ class CtrlCB : public NimBLECharacteristicCallbacks {
   void onWrite(NimBLECharacteristic *c) override {
     String arg = String(c->getValue().c_str()); arg.trim();
     String verb = popToken(arg);
-    if (verb == "TIME") { clockOffset = (int32_t)(arg.toInt() - (int32_t)(millis() / 1000)); clockSet = true; reply("OK"); return; }
+    if (verb == "TIME") {
+      bool first = !clockSet;
+      clockOffset = (int32_t)(arg.toInt() - (int32_t)(millis() / 1000)); clockSet = true;
+      if (first) { alarms.last_charge_epoch = 0; metrics.full_since = 0; if (metrics.last_full_epoch < 1000000000u) metrics.last_full_epoch = 0; }   // epochs taken before the clock was set are meaningless
+      reply("OK"); return;
+    }
     if (verb == "CLAIM") {   // CLAIM <pin>
       uint8_t salt[8]; for (auto &b : salt) b = esp_random();
       ClaimResult r = claim(claimState, millis() / 1000, arg.c_str(), salt, sha);

@@ -7,7 +7,20 @@ import { ALARMS, fmtDur } from './proto.js';
 import { store } from './store.js';
 
 export const isNative = () => Capacitor.isNativePlatform();
-let ready = false, listening = false, actionHandler = null;
+const lastSent = {};
+let ready = false, listening = false, actionHandler = null, changeFn = null;
+export const onChange = (fn) => { changeFn = fn; };
+// Silences are kept on this phone: for a time, or until the alarm clears (then it re-arms by itself).
+let sil = {};
+try { sil = JSON.parse(localStorage.getItem('wattcher.sil')) || {}; } catch (e) { sil = {}; }
+const saveSil = () => { try { localStorage.setItem('wattcher.sil', JSON.stringify(sil)); } catch (e) { /* ignore */ } changeFn?.(); };
+export function isSilenced(id) { const v = sil[id] ?? sil.all; return v === 'c' || (typeof v === 'number' && v > Date.now()); }
+export function silenceInfo(id) { const v = sil[id] ?? sil.all; return isSilenced(id) ? (v === 'c' ? 'until fixed' : `until ${new Date(v).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`) : null; }
+export async function silence(id, ms) {
+  sil[id] = ms === Infinity ? 'c' : Date.now() + ms; saveSil();
+  if (isNative()) { try { await LocalNotifications.cancel({ notifications: ALARMS.map((a) => ({ id: 100 + a.id })) }); } catch (e) { /* ignore */ } }
+}
+export function unsilence(id) { delete sil[id]; if (id === 'all') for (const k of Object.keys(sil)) if (sil[k] !== 'c') delete sil[k]; saveSil(); for (const k of Object.keys(lastSent)) delete lastSent[k]; }
 export const onAction = (fn) => { actionHandler = fn; };
 
 export async function ensurePermission() {
@@ -17,8 +30,8 @@ export async function ensurePermission() {
       if (p.display !== 'granted') p = await LocalNotifications.requestPermissions();
       if (!ready && p.display === 'granted') {
         await LocalNotifications.createChannel({ id: 'alarms2', name: 'Battery alarms', description: 'Low battery and other alarms. Loud, vibrates and repeats until fixed.', importance: 5, visibility: 1, vibration: true, lights: true, lightColor: '#F87171', sound: 'alarm_beep.wav' });
-        try { await LocalNotifications.registerActionTypes({ types: [{ id: 'ALARM', actions: [{ id: 'mute1h', title: 'Mute 1 hour' }, { id: 'open', title: 'Open', foreground: true }] }] }); } catch (e) { /* ignore */ }
-        if (!listening) { listening = true; LocalNotifications.addListener('localNotificationActionPerformed', (ev) => { if (ev.actionId === 'mute1h' && actionHandler) actionHandler(ev.notification?.extra?.alarm); }); }
+        try { await LocalNotifications.registerActionTypes({ types: [{ id: 'ALARM', actions: [{ id: 'mute30', title: 'Silence 30 min' }, { id: 'mutec', title: 'Until fixed' }, { id: 'open', title: 'Open', foreground: true }] }] }); } catch (e) { /* ignore */ }
+        if (!listening) { listening = true; LocalNotifications.addListener('localNotificationActionPerformed', (ev) => { if ((ev.actionId === 'mute30' || ev.actionId === 'mutec') && actionHandler) actionHandler(ev.notification?.extra?.alarm, ev.actionId === 'mutec' ? Infinity : 30 * 60000); }); }
         try { await ForegroundService.createNotificationChannel({ id: 'watch', name: 'Watching your unit', description: 'Keeps the connection alive so alarms can reach you', importance: 2 }); } catch (e) { /* older plugin */ }
         ready = true;
       }
@@ -50,13 +63,14 @@ const detail = (id, live) => {
 
 // Called on every live update. Notifies when an alarm is raised and keeps re-notifying (loud, with vibration)
 // until it clears: critical battery every minute, others every 5 minutes.
-const lastSent = {};
+
 export async function raise(prevMask, mask, van, live, enabled = true) {
   for (const a of ALARMS) {
     const bit = 1 << a.id, active = !!(mask & bit), was = !!(prevMask & bit);
     if (active && !was) store.logAlarm(van.id, a.id, 'fired');
+    if (!active && sil[a.id] === 'c') { delete sil[a.id]; saveSil(); }   // fixed: re-arm
     if (!active && was) { store.logAlarm(van.id, a.id, 'cleared'); delete lastSent[a.id]; if (isNative()) { try { await LocalNotifications.cancel({ notifications: [{ id: 100 + a.id }] }); } catch (e) { /* ignore */ } } }
-    if (!active || !enabled) continue;
+    if (!active || !enabled || isSilenced(a.id)) continue;
     const every = (a.id === 1 ? 60 : 300) * 1000;
     if (lastSent[a.id] && Date.now() - lastSent[a.id] < every) continue;
     lastSent[a.id] = Date.now();

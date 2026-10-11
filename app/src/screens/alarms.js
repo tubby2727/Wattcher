@@ -30,7 +30,7 @@ export function Alarms() {
   const el = h('div', { cls: 'stack' });
   let lastKey = '';
   function update() {
-    const l = app.live; const key = `${l?.alarms}|${l?.off}|${app.conn}|${Object.keys(offList())}|${store.alarmLog().length}`;
+    const l = app.live; const key = `${l?.alarms}|${l?.off}|${app.conn}|${Object.keys(offList())}|${store.alarmLog().length}|${alerts.isSilenced('all')}`;
     if (key === lastKey && el.childNodes.length) return; lastKey = key;
     el.replaceChildren();
     const offAny = ALARMS.some((a) => l && (l.off & (1 << a.id)));
@@ -45,6 +45,10 @@ export function Alarms() {
         active ? h('span', { cls: 'chip bad' }, 'Active') : isOff ? h('span', { cls: 'chip warn' }, 'Off') : null, sw);
     });
     el.append(h('div', { cls: 'card' }, h('h3', {}, 'Alarms'), h('div', { cls: 'list' }, rows)));
+    const allS = alerts.isSilenced('all');
+    el.append(h('div', { cls: 'card' }, h('h3', {}, 'Silence everything'),
+      h('div', { cls: 'help' }, allS ? `All alarm sounds are off ${alerts.silenceInfo('all')}. Critical battery will still sound if it is turned on at the unit.` : 'Quiet the phone for a while. Alarms still show in the app and are logged.'),
+      h('div', { style: 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px' }, allS ? h('button', { cls: 'btn', style: 'grid-column:1/3', onClick: () => alerts.unsilence('all') }, 'Turn sounds back on') : [h('button', { cls: 'btn ghost', onClick: () => alerts.silence('all', 3600e3) }, 'For 1 hour'), h('button', { cls: 'btn ghost', onClick: () => alerts.silence('all', 8 * 3600e3) }, 'For 8 hours')])));
     el.append(h('button', { cls: 'btn ghost', onClick: () => app.conn === 'ready' ? threshSheet() : toast('Connect to the unit first') }, 'Change alarm levels'));
     // notifications
     const nCard = h('div', { cls: 'card' }, h('h3', {}, 'Notifications on this phone'));

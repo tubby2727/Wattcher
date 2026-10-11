@@ -82,10 +82,12 @@ export function banner() {
     return { tone: 'warn', title: app.conn === 'connecting' || app.conn === 'idle' ? 'Connecting to your unit...' : 'Unit not in range', sub: why || (l ? 'Showing the last readings' : 'Make sure it is powered and nearby') };
   }
   const on = ALARMS.filter((a) => l.alarms & (1 << a.id)), off = ALARMS.filter((a) => l.off & (1 << a.id));
+  if (on.length && on.every((a) => alerts.isSilenced(a.id))) return { tone: 'warn', title: `Silenced: ${on.map((a) => a.name).join(', ')}`, sub: `Sound off ${alerts.silenceInfo(on[0].id)}. It re-arms when fixed.`, icon: 'warn' };
   if (on.length) return { tone: 'bad', title: on.map((a) => a.name).join(', '), sub: on.length > 1 ? `${on.length} alarms active` : 'Alarm active', icon: 'warn' };
   if (off.length) return { tone: 'warn', title: `All OK - ${off.map((a) => a.name).join(', ')} off`, sub: 'Open Alarms to turn back on', icon: 'warn' };
   if (!l.shuntFresh) return { tone: 'warn', title: 'No shunt readings yet', sub: 'Check the shunt is in range, or add it in Settings', icon: 'warn' };
   return { tone: 'ok', title: 'All OK', sub: '', icon: 'ok' };
 }
 
-alerts.onAction((id) => { if (id != null) setAlarmOff(id, 3600); });
+alerts.onAction((id, ms) => { if (id != null) alerts.silence(id, ms); });
+alerts.onChange(() => app.emit('live'));

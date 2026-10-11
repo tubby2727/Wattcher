@@ -43,7 +43,7 @@ export function History() {
     const avgUse = useW.length ? useW.reduce((a, b) => a + b, 0) / useW.length : null;
     const stat = (label, val, unit) => h('div', { cls: 'tile' }, h('small', {}, label), h('div', { cls: 'v num', style: 'font-size:24px' }, val, h('u', {}, unit)));
     el.append(h('div', { cls: 'grid2', style: 'grid-template-columns:repeat(3,1fr);gap:8px' },
-      stat('Solar', hasSolar ? (solarWh >= 1000 ? (solarWh / 1000).toFixed(2) : Math.round(solarWh)) : '--', hasSolar ? (solarWh >= 1000 ? 'kWh' : 'Wh') : ''),
+      stat('Solar', hasSolar ? Math.round(solarWh).toLocaleString() : '--', hasSolar ? 'Wh' : ''),
       stat('Lowest', isFinite(minSoc) ? Math.round(minSoc) : '--', '%'),
       stat('Avg use', avgUse == null ? '--' : Math.round(Math.max(0, avgUse)), 'W')));
     // hero: battery % with solar shaded behind and night bands
@@ -62,9 +62,9 @@ export function History() {
       h('div', { cls: 'key' }, h('span', {}, h('i', { style: 'background:var(--ok)' }), 'Battery'), hasSolar ? h('span', {}, h('i', { style: 'background:#F2B36B' }), 'Solar') : null, h('span', {}, h('i', { style: 'background:var(--dim);opacity:.4' }), 'Night'))));
     if (r.sec >= 7 * 86400 && hasSolar) {
       const perDay = new Map();
-      rows.forEach((s0, i) => { if (i === 0) return; const d0 = new Date(s0[0] * 1000); d0.setHours(0, 0, 0, 0); const k = d0.getTime(); perDay.set(k, (perDay.get(k) || 0) + (s0[4] || 0) * Math.min(s0[0] - rows[i - 1][0], 1800) / 3.6e6); });
+      rows.forEach((s0, i) => { if (i === 0) return; const d0 = new Date(s0[0] * 1000); d0.setHours(0, 0, 0, 0); const k = d0.getTime(); perDay.set(k, (perDay.get(k) || 0) + (s0[4] || 0) * Math.min(s0[0] - rows[i - 1][0], 1800) / 3600); });
       const items = [...perDay.entries()].map(([k, v]) => ({ label: new Date(k).getDate().toString(), value: v, today: new Date(k).toDateString() === new Date().toDateString() }));
-      el.append(h('div', { cls: 'card' }, h('h3', {}, 'Solar per day (kWh)'), barChart({ items })));
+      el.append(h('div', { cls: 'card' }, h('h3', {}, 'Solar per day (Wh)'), barChart({ items, fmt: (v) => Math.round(v) })));
     }
     el.append(chartCard({ title: 'Battery power (+ charging / - using)', points: watts, color: 'var(--accent)', unit: 'W', fmt: (v) => Math.round(v), zero: true, sec: r.sec, latest: watts[watts.length - 1].y }));
     el.append(chartCard({ title: 'Voltage', points: pts(1), color: '#C084FC', unit: 'V', fmt: (v) => v.toFixed(2), sec: r.sec, area: false, latest: last[1] }));
