@@ -7,10 +7,12 @@ ver = pkg['version']; code = int(os.environ.get('GITHUB_RUN_NUMBER', '1'))
 
 # ---- manifest
 mf = root / 'app/src/main/AndroidManifest.xml'; s = mf.read_text()
-perms = ['FOREGROUND_SERVICE', 'FOREGROUND_SERVICE_CONNECTED_DEVICE', 'POST_NOTIFICATIONS', 'BLUETOOTH_SCAN', 'BLUETOOTH_CONNECT', 'WAKE_LOCK', 'RECEIVE_BOOT_COMPLETED']
+perms = ['FOREGROUND_SERVICE', 'FOREGROUND_SERVICE_CONNECTED_DEVICE', 'POST_NOTIFICATIONS', 'BLUETOOTH_CONNECT', 'WAKE_LOCK', 'RECEIVE_BOOT_COMPLETED']
 add = ''.join(f'    <uses-permission android:name="android.permission.{p}" />\n' for p in perms if f'permission.{p}"' not in s)
+add += '    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" tools:targetApi="s" tools:node="replace" />\n'
 add += '    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />\n    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />\n'
 add += '    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />\n'
+if 'xmlns:tools' not in s: s = s.replace('<manifest ', '<manifest xmlns:tools="http://schemas.android.com/tools" ', 1)
 s = s.replace('</manifest>', add + '</manifest>')
 svc = '''        <service android:name="io.capawesome.capacitorjs.plugins.foregroundservice.AndroidForegroundService" android:foregroundServiceType="connectedDevice" android:exported="false" />
         <receiver android:name="io.capawesome.capacitorjs.plugins.foregroundservice.NotificationActionBroadcastReceiver" android:exported="false" />
