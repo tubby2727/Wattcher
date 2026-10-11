@@ -1,6 +1,6 @@
 {
   "name": "wattcher-app",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -17,6 +17,7 @@
     "@capacitor/core": "^8.5.3",
     "@capacitor/local-notifications": "^8.3.1",
     "@capawesome-team/capacitor-android-foreground-service": "^8.1.0",
+    "qrcode-generator": "^2.0.4",
     "spark-md5": "^3.0.2"
   },
   "devDependencies": {

@@ -6,6 +6,7 @@ import { victronForm, sensorForm } from '../forms.js';
 import { startWizard } from './wizard.js';
 import { checkForUpdate } from '../updates.js';
 import { firmwareSheet } from './firmware.js';
+import qrcode from 'qrcode-generator';
 
 const VER = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
 
@@ -27,6 +28,13 @@ function locationSheet() {
     h('div', { cls: 'field' }, h('label', {}, 'Latitude'), la), h('div', { cls: 'field' }, h('label', {}, 'Longitude'), lo),
     h('button', { cls: 'btn ghost', onClick: () => navigator.geolocation?.getCurrentPosition((p) => { la.value = p.coords.latitude.toFixed(3); lo.value = p.coords.longitude.toFixed(3); }, () => toast('Could not get your location')) }, 'Use my current location'),
     h('button', { cls: 'btn', onClick: () => { const a = Number(la.value), b = Number(lo.value); if (!(Math.abs(a) <= 90 && Math.abs(b) <= 180)) return toast('Check the numbers'); store.setSetting('location', { lat: a, lon: b }); app.emit('van'); app.emit('history'); close(); } }, 'Save')));
+}
+function shareSheet() {
+  const q = qrcode(0, 'M'); q.addData('https://github.com/tubby2727/Wattcher/releases/latest'); q.make();
+  sheet(() => h('div', { cls: 'stack', style: 'text-align:center' }, h('h2', {}, 'Share Wattcher'),
+    h('div', { cls: 'help' }, 'Point another Android phone camera here to open the download page for the app.'),
+    h('div', { html: q.createSvgTag({ cellSize: 8, margin: 4, scalable: true }), style: 'background:#fff;border-radius:16px;padding:8px;width:min(280px,80%);margin:4px auto' }),
+    h('div', { cls: 'help' }, 'github.com/tubby2727/Wattcher/releases/latest')));
 }
 function needLink() { if (!app.link || app.conn !== 'ready') { toast('Connect to the unit first'); return false; } return true; }
 
@@ -76,7 +84,7 @@ export function Settings() {
 
     const themeSeg = h('div', { cls: 'seg' }, ['auto', 'dark', 'light'].map((t) => h('button', { cls: store.settings.theme === t ? 'on' : '', onClick: () => { store.setSetting('theme', t); applyTheme(t); key = ''; update(); } }, t[0].toUpperCase() + t.slice(1))));
     el.append(h('div', { cls: 'card' }, h('h3', {}, 'App'), h('div', { cls: 'field' }, h('label', {}, 'Theme'), themeSeg), row('Location', `${(store.settings.location?.lat ?? -38.1).toFixed(2)}, ${(store.settings.location?.lon ?? 145.8).toFixed(2)}. Used to shade night on the history graph.`, h('span', { cls: 'chip' }, 'Edit'), locationSheet),
-      h('div', { style: 'display:grid;gap:8px;margin-top:6px' }, h('button', { cls: 'btn ghost', onClick: () => checkForUpdate(true) }, 'Check for updates'), h('button', { cls: 'btn ghost', onClick: () => startWizard({ rerun: true }) }, 'Run setup again')),
+      h('div', { style: 'display:grid;gap:8px;margin-top:6px' }, h('button', { cls: 'btn ghost', onClick: () => checkForUpdate(true) }, 'Check for updates'), h('button', { cls: 'btn ghost', onClick: shareSheet }, 'Share Wattcher (QR code)'), h('button', { cls: 'btn ghost', onClick: () => startWizard({ rerun: true }) }, 'Run setup again')),
       h('div', { cls: 'help', style: 'margin-top:10px' }, `Wattcher app ${VER}. Open source, Apache-2.0.`)));
 
     el.append(h('div', { cls: 'card' }, h('h3', {}, 'Reset'), h('div', { cls: 'help' }, 'Wipes this unit: its PIN, devices, alarm levels and history. It can then be set up again from scratch. You can also hold the unit\'s BOOT button for 10 seconds.'),
