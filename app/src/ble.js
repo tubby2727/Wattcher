@@ -28,7 +28,7 @@ export class Link extends Emitter {
     await init();
     this.deviceId = deviceId; this.setState('connecting'); this.buf = '';
     await BleClient.connect(deviceId, () => this.dropped(), { timeout: 15000 });
-    try { const dv = await BleClient.read(deviceId, SVC, CH.info); return JSON.parse(dec.decode(new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength))); } catch (e) { return { claimed: true }; }
+    try { const dv = await BleClient.read(deviceId, SVC, CH.info); return JSON.parse(dec.decode(new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength))); } catch (e) { return { claimed: null, readError: String(e.message || e) }; }
   }
   async authenticate(mode, pin) {   // mode: 'auth' | 'claim'
     const deviceId = this.deviceId;

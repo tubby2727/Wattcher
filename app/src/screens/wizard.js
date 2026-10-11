@@ -44,7 +44,7 @@ export function startWizard(opts = {}) {
         try {
           const d = await pickUnit(); w.device = d; result.replaceChildren(h('div', { cls: 'help' }, 'Connecting...'));
           w.link = makeLink(); w.info = await w.link.connectOnly(d.deviceId);
-          result.replaceChildren(h('div', { cls: 'found sel' }, icon('ok', 'width="26" height="26" style="color:var(--ok)"'), h('div', { cls: 'grow', style: 'flex:1' }, h('b', {}, d.name), h('small', { style: 'display:block;color:var(--dim)' }, w.info.claimed ? 'Already set up. You will need its PIN.' : 'New unit, ready to set up'))));
+          result.replaceChildren(h('div', { cls: 'found sel' }, icon('ok', 'width="26" height="26" style="color:var(--ok)"'), h('div', { cls: 'grow', style: 'flex:1' }, h('b', {}, d.name), h('small', { style: 'display:block;color:var(--dim)' }, w.info.claimed === null ? `Could not read its status (${w.info.readError}). You can still continue.` : w.info.claimed ? 'Already set up. You will need its PIN.' : 'New unit, ready to set up'))));
           btn.replaceWith(h('button', { cls: 'btn', onClick: next }, 'Continue'));
         } catch (e) { btn.disabled = false; result.replaceChildren(h('div', { cls: 'help', style: 'color:var(--bad)' }, e.message?.includes('cancel') ? 'Nothing selected.' : `Could not connect: ${e.message || e}`)); }
       } }, 'Find my Wattcher');
@@ -52,7 +52,8 @@ export function startWizard(opts = {}) {
     },
 
     pin: () => {
-      const claimed = w.info?.claimed;
+      if (w.info?.claimed === null && w.forceClaimed === undefined) w.forceClaimed = false;
+      const claimed = w.info?.claimed === null ? w.forceClaimed : w.info?.claimed;
       const pin = h('input', { cls: 'input num', inputmode: 'numeric', maxlength: 6, placeholder: '6 digits', style: 'font-size:28px;letter-spacing:.3em;text-align:center' });
       const err = h('div', { cls: 'help', style: 'color:var(--bad)' }, '');
       const go = h('button', { cls: 'btn', onClick: async () => {
@@ -71,7 +72,9 @@ export function startWizard(opts = {}) {
       } }, claimed ? 'Unlock' : 'Create PIN');
       return frame([h('h1', {}, claimed ? 'Enter the PIN' : 'Choose a PIN'),
         h('p', { cls: 'help' }, claimed ? 'This unit already has a PIN. Enter it to add it to this phone.' : 'You will use this PIN to change settings from any phone. Write it down somewhere safe. It cannot be recovered, only reset with the unit\'s BOOT button.'),
-        pin, err, go, h('button', { cls: 'btn ghost', onClick: back }, 'Back')]);
+        pin, err, go,
+        w.info?.claimed === null ? h('button', { cls: 'btn ghost', onClick: () => { w.forceClaimed = !w.forceClaimed; render(); } }, claimed ? 'This unit is new: choose a PIN instead' : 'This unit already has a PIN') : null,
+        h('button', { cls: 'btn ghost', onClick: back }, 'Back')]);
     },
 
     name: () => {
