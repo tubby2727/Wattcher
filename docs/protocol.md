@@ -6,14 +6,15 @@ The unit advertises as `Wattcher` with a 128-bit service UUID (placeholder, chan
 | Char | UUID suffix | Props | Purpose |
 |------|-------------|-------|---------|
 | Info | 0002 | read | JSON `{fw, claimed}`, readable without logging in |
-| Live | 0003 | read, notify | 30-byte frame, once a second |
+| Live | 0003 | read, notify | 32-byte frame, once a second |
 | Control | 0005 | write, notify | text commands, replies end with `\n`, split into 160-byte notifications |
 | History | 0006 | notify | sample stream after `HIST` |
-| OTA | 0007 | write | firmware image chunks after `OTA BEGIN` |
+| OTA | 0007 | write, write-without-response | firmware image chunks after `OTA BEGIN` |
 | Sensors | 0008 | read, notify | u8 count, then 6 bytes per temperature sensor |
 
-## Live frame (30 bytes)
-`u8 ver, u32 epoch, i16 volts_cV, i16 amps_dA, u16 soc_dpct, i32 tte_min, u32 last_full_epoch, i16 pv_w, u32 alarm_mask, u32 off_mask, u8 flags`
+## Live frame (32 bytes)
+`u8 ver, u32 epoch, i16 volts_cV, i16 amps_dA, u16 soc_dpct, i32 tte_min, u32 last_full_epoch, i16 pv_w, u32 alarm_mask, u32 off_mask, u8 flags, i16 ah_da`
+`ah_da` is consumed Ah x 10 (since last full, from the shunt). Older 30-byte readers still parse the first 30 bytes.
 Flags: bit0 shunt fresh, bit1 solar fresh, bit2 temperature sensors configured. Unknown values are
 `0x7FFF` / `0xFFFF` / `0x7FFFFFFF` and the app hides the tile.
 `tte_min` is time to empty when discharging, time to full when charging.
@@ -21,7 +22,8 @@ Flags: bit0 shunt fresh, bit1 solar fresh, bit2 temperature sensors configured. 
 ## Claim and login
 Unclaimed units accept `CLAIM <6 digits>` for 5 minutes after power-up. After that every session starts with
 `TIME <epoch>` (the unit has no clock) and `AUTH <pin>`. Five wrong PINs lock for five minutes.
-Hold BOOT for 10 s to factory reset.
+Hold BOOT for 10 s to factory reset (unreliable; the web flasher's Erase Flash is the dependable reset).
+The first `TIME` after boot also resets the no-charge alarm epoch, because the unit has no RTC.
 
 ## Commands (after AUTH)
 | Command | Effect |
